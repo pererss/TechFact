@@ -79,8 +79,7 @@
         .search-dropdown {
             position: absolute;
             top: 100%;
-            left: 0;
-            right: 0;
+            left: 0; right: 0;
             background: var(--bg-surface);
             border: 1px solid var(--border-color);
             border-top: none;
@@ -318,7 +317,7 @@
         <div class="sidebar-content" id="sidebarContent"></div>
     </div>
     <script>
-        // ========== ДВИЖОК TECHFACT (улучшенный) ==========
+        // ========== ДВИЖОК TECHFACT (полный, исправленный) ==========
         const App = (() => {
             let catalog = null;
             async function loadCatalog() {
@@ -369,7 +368,6 @@
                         "Адаптивная подвеска способна менять жёсткость за 10 миллисекунд."
                     ]
                 },
-                // ... (добавлены факты для всех деталей из категории parts)
                 fuel_injector: {
                     title: "Топливная форсунка",
                     facts: [
@@ -378,10 +376,9 @@
                         "Технология непосредственного впрыска GDI (Gasoline Direct Injection) впервые появилась на Mitsubishi Galant в 1996 году."
                     ]
                 }
-                // ... сокращено для краткости, в коде присутствуют все детали
+                // остальные детали используют общее описание
             };
 
-            // Подмена/дополнение фактов для отсутствующих деталей
             function getPartFacts(partId) {
                 if (extendedPartsInfo[partId]) return extendedPartsInfo[partId].facts;
                 const part = catalog?.categories?.find(c => c.id === 'parts')?.items?.find(i => i.id === partId);
@@ -438,7 +435,7 @@
 
             const app = document.getElementById('app');
 
-            // Главная страница
+            // Главная
             function renderHome() {
                 if (!catalog?.categories.length) {
                     app.innerHTML = '<div class="home-container"><p>Загрузка каталога...</p></div>';
@@ -448,8 +445,7 @@
                     <div class="home-container">
                         <div class="section-title">Каталог техники</div>
                         <div class="bento-grid" id="bentoGrid"></div>
-                    </div>
-                `;
+                    </div>`;
                 const grid = document.getElementById('bentoGrid');
                 catalog.categories.forEach(cat => {
                     const card = document.createElement('div');
@@ -459,14 +455,13 @@
                         <div class="card-info">
                             <div class="card-title">${cat.title}</div>
                             <div class="card-desc">${cat.items.length} моделей</div>
-                        </div>
-                    `;
+                        </div>`;
                     card.addEventListener('click', () => location.hash = `category/${cat.id}`);
                     grid.appendChild(card);
                 });
             }
 
-            // Учебный центр (список деталей)
+            // Учебный центр
             function renderLearningCenter() {
                 const partsCat = catalog?.categories?.find(c => c.id === 'parts');
                 if (!partsCat) {
@@ -477,8 +472,7 @@
                     <div class="learning-container">
                         <h1 class="detail-title">Учебный центр: автомобильные детали и узлы</h1>
                         <div class="learning-grid" id="learningGrid"></div>
-                    </div>
-                `;
+                    </div>`;
                 const grid = document.getElementById('learningGrid');
                 partsCat.items.forEach(item => {
                     const card = document.createElement('div');
@@ -489,7 +483,7 @@
                 });
             }
 
-            // Подробная страница детали (учебный центр)
+            // Деталь учебного центра
             function renderPartDetail(partId) {
                 const partsCat = catalog?.categories?.find(c => c.id === 'parts');
                 const part = partsCat?.items?.find(i => i.id === partId);
@@ -518,8 +512,7 @@
                                 }).join('')}
                             </div>
                         </div>` : ''}
-                    </div>
-                `;
+                    </div>`;
                 document.getElementById('bookmarkBtn').addEventListener('click', function() {
                     const added = toggleBookmark({ title: part.title, url: `#part/${partId}` });
                     this.innerHTML = `<i class="fa-solid fa-bookmark"></i> ${added ? 'В журнале' : 'Добавить'}`;
@@ -527,11 +520,67 @@
                 addHistory({ title: part.title, url: `#part/${partId}` });
             }
 
-            // Остальные функции рендера (category, item, wiki) без изменений
-            function renderCategory(catId) { /* ... (код из предыдущей версии) */ }
-            async function renderItem(catId, itemId) { /* ... (код из предыдущей версии) */ }
-            function renderWiki(title) { /* ... */ }
+            // Категория (список моделей)
+            function renderCategory(catId) {
+                const cat = catalog.categories.find(c => c.id === catId);
+                if (!cat) { location.hash = 'home'; return; }
+                app.innerHTML = `
+                    <div style="padding:30px; max-width:1400px; margin:0 auto;">
+                        <h1 class="detail-title">${cat.title}</h1>
+                        <div class="category-list" id="categoryList"></div>
+                    </div>`;
+                const list = document.getElementById('categoryList');
+                if (cat.items.length === 0) {
+                    list.innerHTML = '<p>В этой категории пока нет моделей.</p>';
+                    return;
+                }
+                cat.items.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'model-card';
+                    card.innerHTML = `<i class="fa-solid ${cat.icon}"></i><span class="model-title">${item.title}</span>`;
+                    card.addEventListener('click', () => location.hash = `item/${cat.id}/${item.id}`);
+                    list.appendChild(card);
+                });
+            }
 
+            // Конкретная модель (с описанием из Википедии)
+            async function renderItem(catId, itemId) {
+                const cat = catalog.categories.find(c => c.id === catId);
+                const item = cat?.items?.find(i => i.id === itemId);
+                if (!item) { location.hash = 'home'; return; }
+                const desc = await wikiSummaryText(item.title);
+                const partsCat = catalog.categories.find(c => c.id === 'parts');
+                const relatedParts = item.related_parts || [];
+                const partsData = partsCat ? partsCat.items.filter(p => relatedParts.includes(p.id)) : [];
+
+                app.innerHTML = `
+                    <div class="detail-container">
+                        <div class="detail-header">
+                            <h1 class="detail-title">${item.title}</h1>
+                            <button class="bookmark-btn" id="bookmarkBtn">
+                                <i class="fa-solid fa-bookmark"></i> ${isBookmarked(`#item/${catId}/${itemId}`) ? 'В журнале' : 'Добавить'}
+                            </button>
+                        </div>
+                        <div class="detail-content" id="detailContent">${desc}</div>
+                        ${partsData.length ? `
+                        <div class="parts-section">
+                            <div class="section-title" style="margin-top:0;">Связанные детали</div>
+                            <div class="parts-list">
+                                ${partsData.map(p => `<div class="part-tag" data-id="${p.id}">${p.title}</div>`).join('')}
+                            </div>
+                        </div>` : ''}
+                    </div>`;
+                document.getElementById('bookmarkBtn').addEventListener('click', function() {
+                    const added = toggleBookmark({ title: item.title, url: `#item/${catId}/${itemId}` });
+                    this.innerHTML = `<i class="fa-solid fa-bookmark"></i> ${added ? 'В журнале' : 'Добавить'}`;
+                });
+                document.querySelectorAll('.part-tag').forEach(tag => {
+                    tag.addEventListener('click', () => location.hash = `part/${tag.dataset.id}`);
+                });
+                addHistory({ title: item.title, url: `#item/${catId}/${itemId}` });
+            }
+
+            // Маршрутизатор
             function handleRoute() {
                 const hash = location.hash.substring(1) || 'home';
                 if (hash === 'home') renderHome();
@@ -543,13 +592,18 @@
                     if (parts.length >= 3) renderItem(parts[1], parts[2]);
                     else renderHome();
                 }
-                else if (hash.startsWith('wiki/')) renderWiki(decodeURIComponent(hash.substring(5)));
+                else if (hash.startsWith('wiki/')) {
+                    const title = decodeURIComponent(hash.substring(5));
+                    // вики-страница (если нужна), оставим заглушкой
+                    app.innerHTML = `<div class="detail-container"><h1>${title}</h1><p>Информация из Википедии...</p></div>`;
+                }
                 else renderHome();
             }
 
             // Боковая панель
             function renderSidebar() {
                 const sc = document.getElementById('sidebarContent');
+                if (!sc) return;
                 const bm = getBookmarks();
                 const hist = getHistory();
                 sc.innerHTML = `
@@ -558,14 +612,24 @@
                     ${bm.map(b=>`<div class="log-item" onclick="location.hash='${b.url.substring(1)}'"><div class="log-item-title">${b.title}</div><button class="remove-bookmark" onclick="event.stopPropagation(); App.removeBookmark('${b.url}')"><i class="fa-solid fa-trash"></i></button></div>`).join('')}
                     <div class="section-title" style="margin-top:30px;">История</div>
                     ${hist.length===0?'<p style="color:var(--text-muted);">Нет записей</p>':''}
-                    ${hist.map(h=>`<div class="log-item" onclick="location.hash='${h.url.substring(1)}'"><div class="log-item-title">${h.title}</div><div class="log-item-desc">${h.url.split('/')[0] === 'part' ? 'Учебный центр' : (catalog?.categories?.find(c=>c.id===h.url.split('/')[1])?.title || 'Техника')}</div></div>`).join('')}
+                    ${hist.map(h=>`<div class="log-item" onclick="location.hash='${h.url.substring(1)}'"><div class="log-item-title">${h.title}</div><div class="log-item-desc">${catalog?.categories?.find(c=>c.id===h.url.split('/')[1])?.title || 'Техника'}</div></div>`).join('')}
                 `;
             }
 
-            function toggleSidebar() { /* ... */ }
-            function removeBookmark(url) { /* ... */ }
+            function toggleSidebar() {
+                const sidebar = document.getElementById('sidebar');
+                const overlay = document.getElementById('overlay');
+                if (!sidebar || !overlay) return;
+                sidebar.classList.toggle('open');
+                overlay.classList.toggle('active');
+                renderSidebar();
+            }
+            function removeBookmark(url) {
+                saveBookmarks(getBookmarks().filter(b => b.url !== url));
+                renderSidebar();
+            }
 
-            // Поиск (только каталог)
+            // Поиск по каталогу
             const searchInput = document.getElementById('searchInput');
             const searchDropdown = document.getElementById('searchDropdown');
             searchInput.addEventListener('input', () => {
