@@ -6,6 +6,7 @@
     <title>TechFact – Энциклопедия техники</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* ... весь CSS из предыдущего ответа без изменений ... */
         :root {
             --bg-base: #050505;
             --bg-surface: #0f0f0f;
@@ -87,7 +88,6 @@
         .model-card i { font-size: 20px; color: var(--text-muted); }
         .model-title { font-size: 16px; font-weight: 600; }
 
-        /* Двухпанельный просмотр */
         .detail-container {
             display: flex;
             height: calc(100vh - 60px);
@@ -130,12 +130,20 @@
         }
         .bookmark-btn:hover { border-color: var(--border-hover); color: var(--text-main); }
 
-        .parts-section { margin-top: 30px; border-top: 1px solid var(--border-color); padding-top: 20px; }
-        .parts-list { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
-        .part-tag {
-            background: var(--bg-surface); border: 1px solid var(--border-color); padding: 6px 12px; font-size: 13px; cursor: pointer; transition: 0.2s;
+        .whatinside-btn {
+            margin-top: 20px;
+            background: none;
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 8px 18px;
+            cursor: pointer;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.2s;
         }
-        .part-tag:hover { border-color: var(--border-hover); background: var(--bg-hover); }
+        .whatinside-btn:hover { border-color: var(--border-hover); color: var(--text-main); background: var(--bg-surface); }
 
         .part-card {
             background: var(--bg-surface);
@@ -157,22 +165,6 @@
             line-height: 1.4;
         }
 
-        .whatinside-btn {
-            margin-top: 20px;
-            background: none;
-            border: 1px solid var(--border-color);
-            color: var(--text-muted);
-            padding: 8px 18px;
-            cursor: pointer;
-            font-size: 14px;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            transition: 0.2s;
-        }
-        .whatinside-btn:hover { border-color: var(--border-hover); color: var(--text-main); background: var(--bg-surface); }
-
-        /* Учебный центр */
         .learning-container { padding: 30px; max-width: 1400px; margin: 0 auto; }
         .learning-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 20px; }
         .learning-card {
@@ -188,7 +180,6 @@
             font-size: 14px; line-height: 1.6;
         }
 
-        /* Бортовой журнал */
         .sidebar {
             position: fixed; top: 0; right: -400px; width: 350px; height: 100vh; background: var(--bg-base);
             border-left: 1px solid var(--border-color); transition: right 0.3s; z-index: 200; display: flex; flex-direction: column;
@@ -244,6 +235,7 @@
     <script>
         const App = (() => {
             let catalog = null;
+            let apiThrottle = false;
 
             async function loadCatalog() {
                 try {
@@ -257,7 +249,6 @@
                 handleRoute();
             }
 
-            // Расширенные факты для деталей (учебный центр)
             const extendedPartsInfo = {
                 engine: { facts: ["Первый коммерчески успешный ДВС был создан Жаном Этьеном Ленуаром в 1859 году.", "КПД бензинового двигателя — около 25–30%, дизеля — до 45%.", "Двигатель Ferrari V12 имеет угол развала 65° и развивает более 800 л.с."] },
                 turbo: { facts: ["Патент на турбокомпрессор получил Альфред Бюхи в 1905 году.", "Температура выхлопных газов на входе в турбину может достигать 1050°C.", "Ротор турбокомпрессора может вращаться со скоростью до 300 000 об/мин."] },
@@ -272,7 +263,6 @@
                 return part ? [part.desc || 'Описание временно недоступно.'] : ['Информация о данной детали появится позже.'];
             }
 
-            // Закладки / история
             const BOOKMARK_KEY = 'techfact_bookmarks';
             const HISTORY_KEY = 'techfact_history';
             const MAX_HISTORY = 10;
@@ -290,44 +280,55 @@
                 if (h.length > MAX_HISTORY) h.pop(); localStorage.setItem(HISTORY_KEY, JSON.stringify(h)); renderSidebar();
             }
 
-            // API Википедии
+            // Защита от 429 и задержка между запросами
+            async function wikiFetch(url) {
+                if (apiThrottle) {
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    apiThrottle = false;
+                }
+                const resp = await fetch(url);
+                if (resp.status === 429) {
+                    apiThrottle = true;
+                    throw new Error('Слишком много запросов к Википедии. Подождите немного и попробуйте снова.');
+                }
+                if (!resp.ok) throw new Error(`Ошибка ${resp.status}`);
+                return await resp.json();
+            }
+
             const WIKI_API = 'https://ru.wikipedia.org/api/rest_v1';
             async function wikiSummaryText(title) {
                 try {
-                    const resp = await fetch(`${WIKI_API}/page/summary/${encodeURIComponent(title)}`);
-                    if (!resp.ok) return 'Описание временно недоступно.';
-                    const data = await resp.json();
+                    const data = await wikiFetch(`${WIKI_API}/page/summary/${encodeURIComponent(title)}`);
                     return stripWikiMarkup(data.extract_html || data.extract) || 'Нет описания.';
-                } catch { return 'Не удалось загрузить описание.'; }
+                } catch (e) {
+                    return e.message.includes('429') ? 'Слишком много запросов к Википедии. Попробуйте позже.' : 'Не удалось загрузить описание.';
+                }
             }
             async function wikiSections(title) {
-                const url = `https://ru.wikipedia.org/w/api.php?action=parse&page=${encodeURIComponent(title)}&prop=sections&format=json&origin=*`;
-                const resp = await fetch(url);
-                const data = await resp.json();
-                return (data.parse?.sections || []).map(s => ({ index: s.index, line: s.line }));
+                try {
+                    const data = await wikiFetch(`https://ru.wikipedia.org/w/api.php?action=parse&page=${encodeURIComponent(title)}&prop=sections&format=json&origin=*`);
+                    return (data.parse?.sections || []).map(s => ({ index: s.index, line: s.line }));
+                } catch (e) {
+                    return [];
+                }
             }
             async function wikiSectionContent(title, idx) {
-                const url = `https://ru.wikipedia.org/w/api.php?action=parse&page=${encodeURIComponent(title)}&section=${idx}&prop=text&format=json&origin=*`;
-                const resp = await fetch(url);
-                const data = await resp.json();
-                return stripWikiMarkup(data.parse?.text?.['*']) || 'Нет содержимого';
+                try {
+                    const data = await wikiFetch(`https://ru.wikipedia.org/w/api.php?action=parse&page=${encodeURIComponent(title)}&section=${idx}&prop=text&format=json&origin=*`);
+                    return stripWikiMarkup(data.parse?.text?.['*']) || 'Нет содержимого';
+                } catch (e) {
+                    return 'Не удалось загрузить раздел.';
+                }
             }
 
-            // Улучшенная очистка текста: удаляет HTML-теги, ссылки заменяет текстом,
-            // убирает "[править | править код]" и другие wiki-артефакты
             function stripWikiMarkup(html) {
                 if (!html) return '';
                 const tmp = document.createElement('div');
                 tmp.innerHTML = html;
-                // Удаляем элементы, которые не нужны
                 tmp.querySelectorAll('style, script, .mw-editsection, .reference, sup, .noprint').forEach(el => el.remove());
-                // Заменяем ссылки на их текст
                 tmp.querySelectorAll('a').forEach(a => a.replaceWith(a.textContent));
-                // Получаем чистый текст
                 let text = tmp.textContent || '';
-                // Удаляем блоки "[править | править код]"
                 text = text.replace(/\[править\s*\|\s*править\s*код\]/gi, '');
-                // Удаляем множественные пробелы и переносы строк
                 text = text.replace(/\s+/g, ' ').trim();
                 return text;
             }
@@ -491,7 +492,7 @@
                         treeContainer.appendChild(node);
                     });
                 } catch (e) {
-                    contentBody.innerHTML = '<p>Статья не найдена в Википедии.</p>';
+                    contentBody.innerHTML = '<p>Не удалось загрузить статью. Возможно, превышен лимит запросов. Попробуйте позже.</p>';
                 }
 
                 function setActive(node) {
