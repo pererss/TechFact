@@ -47,10 +47,7 @@
             text-transform: uppercase;
             cursor: pointer;
         }
-        .logo span {
-            color: var(--text-muted);
-            font-weight: 400;
-        }
+        .logo span { color: var(--text-muted); font-weight: 400; }
         .search-container {
             flex: 1;
             max-width: 600px;
@@ -81,8 +78,7 @@
         .search-dropdown {
             position: absolute;
             top: 100%;
-            left: 0;
-            right: 0;
+            left: 0; right: 0;
             background: var(--bg-surface);
             border: 1px solid var(--border-color);
             border-top: none;
@@ -91,9 +87,7 @@
             display: none;
             z-index: 200;
         }
-        .search-dropdown.active {
-            display: block;
-        }
+        .search-dropdown.active { display: block; }
         .search-item {
             padding: 12px 15px;
             border-bottom: 1px solid var(--border-color);
@@ -101,13 +95,8 @@
             font-size: 14px;
             transition: background 0.1s;
         }
-        .search-item:hover {
-            background: var(--bg-hover);
-        }
-        .search-item .source {
-            color: var(--text-muted);
-            font-size: 12px;
-        }
+        .search-item:hover { background: var(--bg-hover); }
+        .search-item .source { color: var(--text-muted); font-size: 12px; }
         .logbook-btn {
             background: none;
             border: 1px solid var(--border-color);
@@ -121,14 +110,8 @@
             gap: 10px;
             transition: 0.2s;
         }
-        .logbook-btn:hover {
-            border-color: var(--border-hover);
-            background: var(--bg-surface);
-        }
-        #app {
-            min-height: calc(100vh - 73px);
-        }
-        /* HOME PAGE */
+        .logbook-btn:hover { border-color: var(--border-hover); background: var(--bg-surface); }
+        #app { min-height: calc(100vh - 73px); }
         .home-container {
             padding: 40px;
             max-width: 1400px;
@@ -146,9 +129,7 @@
         }
         .section-title::before {
             content: "";
-            display: block;
-            width: 8px;
-            height: 8px;
+            width: 8px; height: 8px;
             background: var(--text-muted);
         }
         .bento-grid {
@@ -184,27 +165,33 @@
             pointer-events: none;
             opacity: 0.5;
         }
-        .card-icon {
-            font-size: 32px;
-            color: var(--text-muted);
-            margin-bottom: 20px;
-        }
-        .card-info {
-            z-index: 1;
-        }
-        .card-title {
-            font-size: 22px;
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
-        .card-desc {
-            font-size: 13px;
-            color: var(--text-muted);
-        }
+        .card-icon { font-size: 32px; color: var(--text-muted); margin-bottom: 20px; }
+        .card-info { z-index: 1; }
+        .card-title { font-size: 22px; font-weight: 600; margin-bottom: 5px; }
+        .card-desc { font-size: 13px; color: var(--text-muted); }
         .card-large { grid-column: span 8; }
         .card-medium { grid-column: span 4; }
-
-        /* DETAIL VIEW (two panels) */
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            padding: 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .model-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            padding: 25px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .model-card:hover { border-color: var(--border-hover); background: var(--bg-hover); }
+        .model-card i { font-size: 24px; color: var(--text-muted); }
+        .model-title { font-size: 18px; font-weight: 600; }
         .detail-container {
             display: flex;
             height: calc(100vh - 73px);
@@ -230,20 +217,9 @@
             color: var(--text-muted);
             transition: 0.1s;
         }
-        .tree-node:hover {
-            color: var(--text-main);
-            background: var(--bg-hover);
-        }
-        .tree-node.active {
-            color: var(--text-main);
-            font-weight: 600;
-            background: var(--bg-hover);
-        }
-        .tree-node.parent {
-            font-weight: 600;
-            color: var(--text-main);
-            margin-top: 10px;
-        }
+        .tree-node:hover { color: var(--text-main); background: var(--bg-hover); }
+        .tree-node.active { color: var(--text-main); font-weight: 600; background: var(--bg-hover); }
+        .tree-node.parent { font-weight: 600; color: var(--text-main); margin-top: 10px; }
         .content-title {
             font-size: 28px;
             font-weight: 700;
@@ -251,15 +227,8 @@
             border-bottom: 1px solid var(--border-color);
             padding-bottom: 10px;
         }
-        .content-body {
-            font-size: 15px;
-            line-height: 1.7;
-            color: #ddd;
-        }
-        .content-body a {
-            color: var(--accent);
-            text-decoration: underline;
-        }
+        .content-body { font-size: 15px; line-height: 1.7; color: #ddd; }
+        .content-body a { color: var(--accent); text-decoration: underline; }
         .bookmark-btn {
             background: none;
             border: 1px solid var(--border-color);
@@ -270,25 +239,15 @@
             margin-left: 10px;
             font-size: 14px;
         }
-        .bookmark-btn:hover {
-            border-color: var(--border-hover);
-            color: var(--text-main);
-        }
-        .bookmark-btn.active {
-            color: var(--accent);
-            border-color: var(--accent);
-        }
-
-        /* SIDEBAR */
+        .bookmark-btn:hover { border-color: var(--border-hover); color: var(--text-main); }
         .sidebar {
             position: fixed;
-            top: 0;
-            right: -400px;
+            top: 0; right: -400px;
             width: 350px;
             height: 100vh;
             background: var(--bg-base);
             border-left: 1px solid var(--border-color);
-            transition: right 0.3s ease;
+            transition: right 0.3s;
             z-index: 200;
             display: flex;
             flex-direction: column;
@@ -301,51 +260,27 @@
             justify-content: space-between;
             align-items: center;
         }
-        .close-btn {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            font-size: 20px;
-            cursor: pointer;
-        }
+        .close-btn { background: none; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer; }
         .close-btn:hover { color: var(--text-main); }
-        .sidebar-content {
-            padding: 25px;
-            overflow-y: auto;
-        }
-        .log-item {
-            padding: 15px 0;
-            border-bottom: 1px solid var(--border-color);
-            cursor: pointer;
-        }
+        .sidebar-content { padding: 25px; overflow-y: auto; }
+        .log-item { padding: 15px 0; border-bottom: 1px solid var(--border-color); cursor: pointer; }
         .log-item:hover { color: var(--text-main); }
         .log-item-title { font-weight: 600; }
         .log-item-desc { color: var(--text-muted); font-size: 12px; }
         .remove-bookmark {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            cursor: pointer;
-            float: right;
-            font-size: 14px;
+            background: none; border: none; color: var(--text-muted); cursor: pointer; float: right; font-size: 14px;
         }
         .remove-bookmark:hover { color: #ff5555; }
-
         .overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.5);
             backdrop-filter: blur(2px);
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s;
+            opacity: 0; pointer-events: none;
+            transition: 0.3s;
             z-index: 150;
         }
-        .overlay.active {
-            opacity: 1;
-            pointer-events: all;
-        }
-
+        .overlay.active { opacity: 1; pointer-events: all; }
         @media (max-width: 900px) {
             .bento-card { grid-column: span 12 !important; }
             .search-container { display: none; }
@@ -359,519 +294,227 @@
         <div class="logo" onclick="location.hash='home'">Tech<span>Fact</span></div>
         <div class="search-container">
             <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" class="search-bar" id="searchInput" placeholder="Поиск детали, модели, термина…" autocomplete="off">
+            <input type="text" class="search-bar" id="searchInput" placeholder="Поиск модели, детали..." autocomplete="off">
             <div class="search-dropdown" id="searchDropdown"></div>
         </div>
         <button class="logbook-btn" onclick="App.toggleSidebar()">
             <i class="fa-solid fa-book"></i> Журнал
         </button>
     </header>
-
-    <!-- Динамический контент -->
     <div id="app"></div>
-
-    <!-- Бортовой журнал -->
     <div class="overlay" id="overlay" onclick="App.toggleSidebar()"></div>
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <div style="font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Бортовой журнал</div>
+            <div style="font-weight:600;text-transform:uppercase;letter-spacing:1px;">Бортовой журнал</div>
             <button class="close-btn" onclick="App.toggleSidebar()"><i class="fa-solid fa-xmark"></i></button>
         </div>
-        <div class="sidebar-content" id="sidebarContent">
-            <!-- Динамически заполняется -->
-        </div>
+        <div class="sidebar-content" id="sidebarContent"></div>
     </div>
-
     <script>
-        // ==================== ДВИЖОК TECHFACT ====================
-        // Все модули объединены в глобальный объект App
-
         const App = (() => {
-            // ---------- Локальная база знаний ----------
-            const localDB = {
-                categories: [
-                    {
-                        id: "cars",
-                        title: "Легковые автомобили",
-                        desc: "От первых ДВС до электрокаров. Седаны, купе, спорткары.",
-                        icon: "fa-car-side"
-                    },
-                    {
-                        id: "aviation",
-                        title: "Авиация",
-                        desc: "Гражданские лайнеры, истребители, вертолеты.",
-                        icon: "fa-plane"
-                    },
-                    {
-                        id: "heavy",
-                        title: "Тяжёлая техника",
-                        desc: "Грузовики, карьерные самосвалы, тягачи.",
-                        icon: "fa-truck"
-                    },
-                    {
-                        id: "moto",
-                        title: "Мототехника",
-                        desc: "Спортбайки, круизеры, кроссовые мотоциклы.",
-                        icon: "fa-motorcycle"
-                    },
-                    {
-                        id: "water",
-                        title: "Водный транспорт",
-                        desc: "Катера, лайнеры, подводные лодки.",
-                        icon: "fa-ship"
-                    }
-                ],
-                items: [
-                    {
-                        id: "v8",
-                        title: "V8 двигатель",
-                        category: "cars",
-                        sections: [
-                            { title: "Обзор", content: "V-образный 8-цилиндровый двигатель внутреннего сгорания с двумя рядами по 4 цилиндра. Широко применяется в спортивных и представительских автомобилях." },
-                            { title: "Технические особенности", content: "Угол развала цилиндров обычно 90°. Обеспечивает высокую мощность и равномерную работу. Примеры: Chevrolet Small-Block, Ford Modular V8." }
-                        ]
-                    },
-                    {
-                        id: "turbo",
-                        title: "Турбокомпрессор",
-                        category: "cars",
-                        sections: [
-                            { title: "Принцип работы", content: "Использует энергию выхлопных газов для вращения турбины, которая сжимает входящий воздух и увеличивает мощность двигателя." },
-                            { title: "Основные узлы", content: "Корпус турбины, компрессорное колесо, подшипниковый узел, вестгейт." }
-                        ]
-                    },
-                    {
-                        id: "mustang67",
-                        title: "Ford Mustang (1967)",
-                        category: "cars",
-                        sections: [
-                            { title: "История", content: "Культовый muscle car, первое поколение которого претерпело рестайлинг в 1967 году. Оснащался двигателями от рядной шестёрки до 390-го V8." }
-                        ]
-                    }
-                ]
-            };
-
-            // ---------- Менеджер закладок и истории ----------
+            let catalog = null;
+            async function loadCatalog() {
+                try {
+                    const resp = await fetch('data.json');
+                    if (!resp.ok) throw new Error('data.json not found');
+                    catalog = await resp.json();
+                } catch (e) { catalog = { categories: [] }; }
+                handleRoute();
+            }
             const BOOKMARK_KEY = 'techfact_bookmarks';
             const HISTORY_KEY = 'techfact_history';
             const MAX_HISTORY = 10;
-
-            function getBookmarks() {
-                try { return JSON.parse(localStorage.getItem(BOOKMARK_KEY)) || []; } catch { return []; }
-            }
-            function saveBookmarks(bookmarks) {
-                localStorage.setItem(BOOKMARK_KEY, JSON.stringify(bookmarks));
-            }
+            function getBookmarks() { try { return JSON.parse(localStorage.getItem(BOOKMARK_KEY)) || []; } catch { return []; } }
+            function saveBookmarks(b) { localStorage.setItem(BOOKMARK_KEY, JSON.stringify(b)); }
             function toggleBookmark(item) {
-                const bookmarks = getBookmarks();
-                const idx = bookmarks.findIndex(b => b.url === item.url);
-                if (idx >= 0) {
-                    bookmarks.splice(idx, 1);
-                } else {
-                    bookmarks.unshift(item);
-                }
-                saveBookmarks(bookmarks);
+                const bm = getBookmarks();
+                const idx = bm.findIndex(x => x.url === item.url);
+                if (idx >= 0) bm.splice(idx, 1); else bm.unshift(item);
+                saveBookmarks(bm);
                 renderSidebar();
-                return idx < 0; // true если добавлен
+                return idx < 0;
             }
-            function isBookmarked(url) {
-                return getBookmarks().some(b => b.url === url);
-            }
-
-            function getHistory() {
-                try { return JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; } catch { return []; }
-            }
+            function isBookmarked(url) { return getBookmarks().some(x => x.url === url); }
+            function getHistory() { try { return JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; } catch { return []; } }
             function addHistory(item) {
-                const history = getHistory().filter(h => h.url !== item.url);
-                history.unshift(item);
-                if (history.length > MAX_HISTORY) history.pop();
-                localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+                const h = getHistory().filter(x => x.url !== item.url);
+                h.unshift(item);
+                if (h.length > MAX_HISTORY) h.pop();
+                localStorage.setItem(HISTORY_KEY, JSON.stringify(h));
                 renderSidebar();
             }
-
-            // ---------- API Википедии ----------
             const WIKI_API = 'https://ru.wikipedia.org/api/rest_v1';
-            // Поиск по заголовкам (используем REST поиск)
-            async function wikiSearch(query) {
-                const url = `https://ru.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&origin=*`;
+            async function wikiSearch(query, limit = 10) {
+                const url = `https://ru.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&origin=*&srlimit=${limit}`;
                 const resp = await fetch(url);
                 const data = await resp.json();
-                return data.query.search.map(r => ({
+                return (data.query?.search || []).map(r => ({
                     title: r.title,
                     snippet: r.snippet.replace(/<\/?[^>]+(>|$)/g, ""),
                     url: `#wiki/${encodeURIComponent(r.title)}`
                 }));
             }
-            // Получить аннотацию (summary)
             async function wikiSummary(title) {
                 const resp = await fetch(`${WIKI_API}/page/summary/${encodeURIComponent(title)}`);
-                if (!resp.ok) throw new Error('Статья не найдена');
+                if (!resp.ok) throw new Error('not found');
                 return await resp.json();
             }
-            // Получить секции
             async function wikiSections(title) {
                 const url = `https://ru.wikipedia.org/w/api.php?action=parse&page=${encodeURIComponent(title)}&prop=sections&format=json&origin=*`;
                 const resp = await fetch(url);
                 const data = await resp.json();
-                if (!data.parse || !data.parse.sections) return [];
-                return data.parse.sections.map(s => ({
-                    index: s.index,
-                    number: s.number,
-                    line: s.line,
-                    anchor: s.anchor
-                }));
+                return (data.parse?.sections || []).map(s => ({ index: s.index, line: s.line }));
             }
-            // Получить HTML контент секции
-            async function wikiSectionContent(title, sectionIndex) {
-                const url = `https://ru.wikipedia.org/w/api.php?action=parse&page=${encodeURIComponent(title)}&section=${sectionIndex}&prop=text&format=json&origin=*`;
+            async function wikiSectionContent(title, idx) {
+                const url = `https://ru.wikipedia.org/w/api.php?action=parse&page=${encodeURIComponent(title)}&section=${idx}&prop=text&format=json&origin=*`;
                 const resp = await fetch(url);
                 const data = await resp.json();
-                return data.parse.text['*']; // HTML
+                return data.parse?.text?.['*'] || '<p>Нет содержимого</p>';
             }
-
-            // ---------- Поиск по локальной базе ----------
-            function localSearch(query) {
-                const results = [];
-                const q = query.toLowerCase();
-                // Ищем в items
-                localDB.items.forEach(item => {
-                    if (item.title.toLowerCase().includes(q)) {
-                        results.push({
-                            title: item.title,
-                            snippet: `Категория: ${getCategoryTitle(item.category)}`,
-                            url: `#item/${item.id}`,
-                            source: 'local'
-                        });
-                    }
-                });
-                // Ищем в категориях
-                localDB.categories.forEach(cat => {
-                    if (cat.title.toLowerCase().includes(q)) {
-                        results.push({
-                            title: cat.title,
-                            snippet: 'Категория',
-                            url: `#category/${cat.id}`,
-                            source: 'local'
-                        });
-                    }
-                });
-                return results;
-            }
-
-            function getCategoryTitle(catId) {
-                const cat = localDB.categories.find(c => c.id === catId);
-                return cat ? cat.title : '';
-            }
-
-            // ---------- Рендеринг представлений ----------
             const app = document.getElementById('app');
-
             function renderHome() {
-                app.innerHTML = `
-                    <div class="home-container">
-                        <div class="section-title">Каталог техники</div>
-                        <div class="bento-grid" id="bentoGrid"></div>
-                    </div>
-                `;
+                if (!catalog?.categories.length) { app.innerHTML = '<div class="home-container"><p>Загрузка каталога...</p></div>'; return; }
+                app.innerHTML = `<div class="home-container"><div class="section-title">Каталог техники</div><div class="bento-grid" id="bentoGrid"></div></div>`;
                 const grid = document.getElementById('bentoGrid');
-                // Формируем карточки категорий (можно настраивать размеры)
-                const sizes = ['card-large', 'card-medium', 'card-medium', 'card-medium', 'card-medium'];
-                localDB.categories.forEach((cat, idx) => {
+                const sizes = ['card-large','card-medium','card-medium','card-medium','card-medium','card-medium','card-medium'];
+                catalog.categories.forEach((cat,i) => {
                     const card = document.createElement('div');
-                    card.className = `bento-card ${sizes[idx] || 'card-medium'}`;
-                    card.innerHTML = `
-                        <div class="card-icon"><i class="fa-solid ${cat.icon}"></i></div>
-                        <div class="card-info">
-                            <div class="card-title">${cat.title}</div>
-                            <div class="card-desc">${cat.desc}</div>
-                        </div>
-                    `;
-                    card.addEventListener('click', () => {
-                        location.hash = `category/${cat.id}`;
-                    });
+                    card.className = `bento-card ${sizes[i] || 'card-medium'}`;
+                    card.innerHTML = `<div class="card-icon"><i class="fa-solid ${cat.icon}"></i></div><div class="card-info"><div class="card-title">${cat.title}</div><div class="card-desc">${cat.desc}</div></div>`;
+                    card.addEventListener('click', () => location.hash = `category/${cat.id}`);
                     grid.appendChild(card);
                 });
             }
-
-            // Детальный вид категории / элемента / вики-статьи
-            function renderDetail(type, id) {
-                // type: 'category', 'item', 'wiki'
-                if (type === 'category') {
-                    const cat = localDB.categories.find(c => c.id === id);
-                    if (!cat) return renderHome();
-                    const items = localDB.items.filter(i => i.category === id);
-                    // Показываем дерево из элементов категории
-                    renderTwoPanel({
-                        title: cat.title,
-                        tree: [
-                            { title: 'Все модели', anchor: 'overview', isParent: true },
-                            ...items.map(i => ({ title: i.title, anchor: `item/${i.id}`, isLocal: true }))
-                        ],
-                        loadContent: async (anchor) => {
-                            if (anchor === 'overview') {
-                                return `<p>Содержит ${items.length} моделей(ей). Выберите элемент из дерева.</p>`;
-                            } else if (anchor.startsWith('item/')) {
-                                const itemId = anchor.split('/')[1];
-                                const item = localDB.items.find(i => i.id === itemId);
-                                if (item) {
-                                    // Показать контент первого раздела (или всего)
-                                    return item.sections.map(s => `<h3>${s.title}</h3><p>${s.content}</p>`).join('');
-                                }
-                                return '<p>Не найдено</p>';
-                            }
-                            return '';
-                        },
-                        bookmarkInfo: { title: cat.title, url: `#category/${id}` }
-                    });
-                } else if (type === 'item') {
-                    const item = localDB.items.find(i => i.id === id);
-                    if (!item) return renderHome();
-                    renderTwoPanel({
-                        title: item.title,
-                        tree: item.sections.map((s, idx) => ({ title: s.title, anchor: `section${idx}`, isLocal: true })),
-                        loadContent: async (anchor) => {
-                            const idx = parseInt(anchor.replace('section', ''));
-                            return `<p>${item.sections[idx].content}</p>`;
-                        },
-                        bookmarkInfo: { title: item.title, url: `#item/${id}` }
-                    });
-                } else if (type === 'wiki') {
-                    const title = decodeURIComponent(id);
-                    renderTwoPanel({
-                        title: title,
-                        tree: null, // будет загружено динамически
-                        loadContent: null, // аналогично
-                        isWiki: true,
-                        wikiTitle: title,
-                        bookmarkInfo: { title: title, url: `#wiki/${id}` }
-                    });
-                }
-            }
-
-            // Универсальный двухпанельный интерфейс
-            function renderTwoPanel({ title, tree, loadContent, bookmarkInfo, isWiki, wikiTitle }) {
-                app.innerHTML = `
-                    <div class="detail-container">
-                        <div class="left-panel" id="leftPanel">
-                            <div style="margin-bottom: 20px; font-weight: 600;">${title}</div>
-                            <div id="treeContainer"></div>
-                        </div>
-                        <div class="right-panel">
-                            <div style="display: flex; align-items: center; justify-content: space-between;">
-                                <h1 class="content-title" id="contentTitle">${title}</h1>
-                                <button class="bookmark-btn" id="bookmarkBtn">
-                                    <i class="fa-solid fa-bookmark"></i> ${isBookmarked(bookmarkInfo.url) ? 'В журнале' : 'Добавить'}
-                                </button>
-                            </div>
-                            <div class="content-body" id="contentBody"></div>
-                        </div>
-                    </div>
-                `;
-
-                const treeContainer = document.getElementById('treeContainer');
-                const contentBody = document.getElementById('contentBody');
-                const bookmarkBtn = document.getElementById('bookmarkBtn');
-
-                // Закладка
-                bookmarkBtn.addEventListener('click', () => {
-                    const added = toggleBookmark(bookmarkInfo);
-                    bookmarkBtn.innerHTML = `<i class="fa-solid fa-bookmark"></i> ${added ? 'В журнале' : 'Добавить'}`;
+            function renderCategory(catId) {
+                const cat = catalog.categories.find(c => c.id === catId);
+                if (!cat) { location.hash = 'home'; return; }
+                app.innerHTML = `<div style="padding:40px;max-width:1400px;margin:0 auto;"><h1 class="content-title">${cat.title}</h1><div class="category-grid" id="categoryGrid"></div></div>`;
+                const grid = document.getElementById('categoryGrid');
+                if (!cat.items.length) { grid.innerHTML = '<p>Нет моделей</p>'; return; }
+                cat.items.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'model-card';
+                    card.innerHTML = `<i class="fa-solid ${cat.icon}"></i><span class="model-title">${item.title}</span>`;
+                    card.addEventListener('click', () => location.hash = `item/${cat.id}/${item.id}`);
+                    grid.appendChild(card);
                 });
-
-                // Функция для отрисовки активного узла
-                function setActive(node) {
-                    treeContainer.querySelectorAll('.tree-node').forEach(n => n.classList.remove('active'));
-                    if (node) node.classList.add('active');
-                }
-
-                if (!isWiki) {
-                    // Локальное дерево
-                    tree.forEach((node, idx) => {
-                        const div = document.createElement('div');
-                        div.className = `tree-node${node.isParent ? ' parent' : ''}`;
-                        div.textContent = node.title;
-                        div.addEventListener('click', async () => {
-                            setActive(div);
-                            contentBody.innerHTML = '<p>Загрузка...</p>';
-                            const html = await loadContent(node.anchor);
-                            contentBody.innerHTML = html;
-                            addHistory({ title: node.title, url: `#${node.anchor}` });
-                        });
-                        treeContainer.appendChild(div);
-                    });
-                    // Показываем первый элемент по умолчанию
-                    if (tree.length > 0) {
-                        treeContainer.firstChild.click();
-                    }
-                } else {
-                    // Википедия – загружаем секции динамически
-                    contentBody.innerHTML = '<p>Загрузка...</p>';
-                    (async () => {
-                        try {
-                            const summary = await wikiSummary(wikiTitle);
-                            contentBody.innerHTML = summary.extract_html || `<p>${summary.extract}</p>`;
-                            addHistory({ title: wikiTitle, url: `#wiki/${encodeURIComponent(wikiTitle)}` });
-
-                            // Загружаем секции для дерева
-                            const sections = await wikiSections(wikiTitle);
-                            // Очистим и добавим parent node "Обзор"
-                            treeContainer.innerHTML = '';
-                            const overviewNode = document.createElement('div');
-                            overviewNode.className = 'tree-node parent active';
-                            overviewNode.textContent = 'Обзор';
-                            overviewNode.addEventListener('click', () => {
-                                contentBody.innerHTML = summary.extract_html || `<p>${summary.extract}</p>`;
-                                setActive(overviewNode);
-                            });
-                            treeContainer.appendChild(overviewNode);
-                            sections.forEach(s => {
-                                const div = document.createElement('div');
-                                div.className = 'tree-node';
-                                div.textContent = s.line;
-                                div.addEventListener('click', async () => {
-                                    setActive(div);
-                                    contentBody.innerHTML = '<p>Загрузка...</p>';
-                                    try {
-                                        const html = await wikiSectionContent(wikiTitle, s.index);
-                                        contentBody.innerHTML = html;
-                                    } catch (e) {
-                                        contentBody.innerHTML = '<p>Не удалось загрузить содержимое секции.</p>';
-                                    }
-                                    addHistory({ title: s.line, url: `#wiki/${encodeURIComponent(wikiTitle)}` });
-                                });
-                                treeContainer.appendChild(div);
-                            });
-                        } catch (e) {
-                            contentBody.innerHTML = '<p>Статья не найдена или ошибка соединения.</p>';
-                        }
-                    })();
-                }
             }
-
-            // ---------- Маршрутизация ----------
+            function renderWiki(title) {
+                app.innerHTML = `<div class="detail-container"><div class="left-panel" id="leftPanel"><div style="margin-bottom:20px;font-weight:600;">${title}</div><div id="treeContainer"></div></div><div class="right-panel"><div style="display:flex;align-items:center;justify-content:space-between;"><h1 class="content-title" id="contentTitle">${title}</h1><button class="bookmark-btn" id="bookmarkBtn"><i class="fa-solid fa-bookmark"></i> ${isBookmarked(`#wiki/${encodeURIComponent(title)}`) ? 'В журнале' : 'Добавить'}</button></div><div class="content-body" id="contentBody">Загрузка...</div></div></div>`;
+                const tree = document.getElementById('treeContainer');
+                const body = document.getElementById('contentBody');
+                const btn = document.getElementById('bookmarkBtn');
+                btn.addEventListener('click', () => {
+                    const added = toggleBookmark({ title, url: `#wiki/${encodeURIComponent(title)}` });
+                    btn.innerHTML = `<i class="fa-solid fa-bookmark"></i> ${added ? 'В журнале' : 'Добавить'}`;
+                });
+                function setActive(n) { tree.querySelectorAll('.tree-node').forEach(e => e.classList.remove('active')); if (n) n.classList.add('active'); }
+                (async () => {
+                    try {
+                        const sum = await wikiSummary(title);
+                        body.innerHTML = sum.extract_html || `<p>${sum.extract}</p>`;
+                        addHistory({ title, url: `#wiki/${encodeURIComponent(title)}` });
+                        const secs = await wikiSections(title);
+                        tree.innerHTML = '';
+                        const ov = document.createElement('div'); ov.className = 'tree-node parent active'; ov.textContent = 'Обзор';
+                        ov.addEventListener('click', () => { body.innerHTML = sum.extract_html || `<p>${sum.extract}</p>`; setActive(ov); });
+                        tree.appendChild(ov);
+                        secs.forEach(s => {
+                            const el = document.createElement('div'); el.className = 'tree-node'; el.textContent = s.line;
+                            el.addEventListener('click', async () => {
+                                setActive(el); body.innerHTML = '<p>Загрузка...</p>';
+                                try { body.innerHTML = await wikiSectionContent(title, s.index); } catch { body.innerHTML = '<p>Ошибка</p>'; }
+                                addHistory({ title: s.line, url: `#wiki/${encodeURIComponent(title)}` });
+                            });
+                            tree.appendChild(el);
+                        });
+                    } catch { body.innerHTML = '<p>Статья не найдена</p>'; }
+                })();
+            }
             function handleRoute() {
                 const hash = location.hash.substring(1) || 'home';
-                if (hash === 'home') {
-                    renderHome();
-                } else if (hash.startsWith('category/')) {
-                    renderDetail('category', hash.split('/')[1]);
-                } else if (hash.startsWith('item/')) {
-                    renderDetail('item', hash.split('/')[1]);
-                } else if (hash.startsWith('wiki/')) {
-                    renderDetail('wiki', hash.split('/').slice(1).join('/')); // в названии могут быть слеши
-                } else {
-                    renderHome();
+                if (hash === 'home') renderHome();
+                else if (hash.startsWith('category/')) renderCategory(hash.split('/')[1]);
+                else if (hash.startsWith('item/')) {
+                    const parts = hash.split('/');
+                    const catId = parts[1];
+                    const itemId = parts[2];
+                    const item = catalog?.categories?.find(c=>c.id===catId)?.items?.find(i=>i.id===itemId);
+                    if (item) renderWiki(item.title);
+                    else renderHome();
                 }
+                else if (hash.startsWith('wiki/')) {
+                    const title = decodeURIComponent(hash.substring(5));
+                    renderWiki(title);
+                }
+                else renderHome();
             }
-
-            // ---------- Боковая панель ----------
             function renderSidebar() {
-                const sidebarContent = document.getElementById('sidebarContent');
-                const bookmarks = getBookmarks();
-                const history = getHistory();
-                sidebarContent.innerHTML = `
+                const sc = document.getElementById('sidebarContent');
+                const bm = getBookmarks();
+                const hist = getHistory();
+                sc.innerHTML = `
                     <div class="section-title" style="margin-top:0;">Закладки</div>
-                    ${bookmarks.length === 0 ? '<p style="color:var(--text-muted);">Нет закладок</p>' : ''}
-                    ${bookmarks.map(b => `
-                        <div class="log-item" onclick="location.hash='${b.url.substring(1)}'">
-                            <div class="log-item-title">${b.title}</div>
-                            <button class="remove-bookmark" onclick="event.stopPropagation(); App.removeBookmark('${b.url}')"><i class="fa-solid fa-trash"></i></button>
-                        </div>
-                    `).join('')}
+                    ${bm.length===0?'<p style="color:var(--text-muted);">Нет закладок</p>':''}
+                    ${bm.map(b=>`<div class="log-item" onclick="location.hash='${b.url.substring(1)}'"><div class="log-item-title">${b.title}</div><button class="remove-bookmark" onclick="event.stopPropagation(); App.removeBookmark('${b.url}')"><i class="fa-solid fa-trash"></i></button></div>`).join('')}
                     <div class="section-title" style="margin-top:30px;">История</div>
-                    ${history.length === 0 ? '<p style="color:var(--text-muted);">Нет записей</p>' : ''}
-                    ${history.map(h => `
-                        <div class="log-item" onclick="location.hash='${h.url.substring(1)}'">
-                            <div class="log-item-title">${h.title}</div>
-                            <div class="log-item-desc">${h.url}</div>
-                        </div>
-                    `).join('')}
+                    ${hist.length===0?'<p style="color:var(--text-muted);">Нет записей</p>':''}
+                    ${hist.map(h=>`<div class="log-item" onclick="location.hash='${h.url.substring(1)}'"><div class="log-item-title">${h.title}</div><div class="log-item-desc">${h.url}</div></div>`).join('')}
                 `;
             }
-
             function toggleSidebar() {
                 document.getElementById('sidebar').classList.toggle('open');
                 document.getElementById('overlay').classList.toggle('active');
-                renderSidebar(); // обновить при открытии
-            }
-
-            // Удаление закладки (вызывается из sidebar)
-            function removeBookmark(url) {
-                const bookmarks = getBookmarks().filter(b => b.url !== url);
-                saveBookmarks(bookmarks);
                 renderSidebar();
-                // Обновить кнопку на текущей странице, если она открыта
-                const btn = document.getElementById('bookmarkBtn');
-                if (btn) {
-                    const currentUrl = location.hash;
-                    btn.innerHTML = `<i class="fa-solid fa-bookmark"></i> ${isBookmarked(currentUrl) ? 'В журнале' : 'Добавить'}`;
-                }
             }
-
-            // ---------- Поиск с дропдауном ----------
+            function removeBookmark(url) {
+                saveBookmarks(getBookmarks().filter(b=>b.url!==url));
+                renderSidebar();
+            }
             let searchTimeout;
             const searchInput = document.getElementById('searchInput');
             const searchDropdown = document.getElementById('searchDropdown');
-
             searchInput.addEventListener('input', () => {
                 clearTimeout(searchTimeout);
-                const query = searchInput.value.trim();
-                if (query.length < 2) {
-                    searchDropdown.innerHTML = '';
-                    searchDropdown.classList.remove('active');
-                    return;
-                }
+                const q = searchInput.value.trim();
+                if (q.length < 2) { searchDropdown.innerHTML = ''; searchDropdown.classList.remove('active'); return; }
                 searchTimeout = setTimeout(async () => {
-                    // Сначала локально
-                    let results = localSearch(query);
-                    // Если меньше 3 результатов, добиваем из Википедии
-                    if (results.length < 3) {
+                    let results = [];
+                    if (catalog) {
+                        catalog.categories.forEach(c => {
+                            c.items?.forEach(item => {
+                                if (item.title.toLowerCase().includes(q.toLowerCase())) {
+                                    results.push({ title: item.title, snippet: c.title, url: `#item/${c.id}/${item.id}`, source: 'catalog' });
+                                }
+                            });
+                        });
+                    }
+                    if (results.length < 5) {
                         try {
-                            const wikiResults = await wikiSearch(query);
-                            results = [...results, ...wikiResults.map(r => ({
-                                title: r.title,
-                                snippet: r.snippet,
-                                url: r.url,
-                                source: 'wiki'
-                            }))].slice(0, 8);
-                        } catch (e) {
-                            console.warn('Wiki search error', e);
-                        }
+                            const wikiRes = await wikiSearch(q, 5);
+                            results = [...results, ...wikiRes.map(r => ({...r, source:'wiki'}))].slice(0,8);
+                        } catch {}
                     }
                     searchDropdown.innerHTML = results.map(r => `
                         <div class="search-item" data-url="${r.url}">
                             <strong>${r.title}</strong>
-                            <div class="source">${r.source === 'local' ? 'TechFact' : 'Wikipedia'}</div>
-                            <div style="font-size:12px; color:var(--text-muted)">${r.snippet || ''}</div>
+                            <div class="source">${r.source==='catalog'?'Каталог':'Википедия'}</div>
+                            <div style="font-size:12px;color:var(--text-muted)">${r.snippet||''}</div>
                         </div>
                     `).join('');
                     searchDropdown.classList.add('active');
-                    document.querySelectorAll('.search-item').forEach(el => {
+                    document.querySelectorAll('#searchDropdown .search-item').forEach(el => {
                         el.addEventListener('click', () => {
-                            const url = el.dataset.url;
-                            location.hash = url.substring(1); // убираем #
+                            location.hash = el.dataset.url.substring(1);
                             searchDropdown.classList.remove('active');
                             searchInput.value = '';
                         });
                     });
                 }, 300);
             });
-
-            // Закрытие дропдауна при клике вне
-            document.addEventListener('click', (e) => {
-                if (!e.target.closest('.search-container')) {
-                    searchDropdown.classList.remove('active');
-                }
-            });
-
-            // ---------- Инициализация ----------
+            document.addEventListener('click', e => { if (!e.target.closest('.search-container')) searchDropdown.classList.remove('active'); });
             window.addEventListener('hashchange', handleRoute);
-            window.addEventListener('load', () => {
-                handleRoute();
-                renderSidebar();
-            });
-
-            // Публичный API для вызова из HTML
+            loadCatalog().then(() => { renderSidebar(); });
             return { toggleSidebar, removeBookmark };
         })();
     </script>
