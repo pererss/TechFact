@@ -6,7 +6,6 @@
     <title>TechFact – Энциклопедия техники</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* ... весь CSS из предыдущего ответа без изменений ... */
         :root {
             --bg-base: #050505;
             --bg-surface: #0f0f0f;
@@ -235,7 +234,55 @@
     <script>
         const App = (() => {
             let catalog = null;
-            let apiThrottle = false;
+
+            // Очередь запросов с задержкой
+            const requestQueue = [];
+            let isProcessingQueue = false;
+
+            async function processQueue() {
+                if (isProcessingQueue) return;
+                isProcessingQueue = true;
+                while (requestQueue.length > 0) {
+                    const { url, resolve, reject } = requestQueue.shift();
+                    try {
+                        const result = await executeWikiFetch(url);
+                        resolve(result);
+                    } catch (e) {
+                        reject(e);
+                    }
+                    await new Promise(r => setTimeout(r, 1000)); // задержка 1 сек между запросами
+                }
+                isProcessingQueue = false;
+            }
+
+            async function wikiFetch(url) {
+                return new Promise((resolve, reject) => {
+                    requestQueue.push({ url, resolve, reject });
+                    processQueue();
+                });
+            }
+
+            async function executeWikiFetch(url, retries = 2) {
+                for (let i = 0; i <= retries; i++) {
+                    try {
+                        const resp = await fetch(url);
+                        if (resp.status === 429) {
+                            if (i < retries) {
+                                await new Promise(r => setTimeout(r, 2000 * (i + 1))); // экспоненциальная задержка
+                                continue;
+                            }
+                            throw new Error('Слишком много запросов. Попробуйте позже.');
+                        }
+                        if (resp.status === 404) {
+                            throw new Error('Статья не найдена.');
+                        }
+                        if (!resp.ok) throw new Error(`Ошибка ${resp.status}`);
+                        return await resp.json();
+                    } catch (e) {
+                        if (i === retries) throw e;
+                    }
+                }
+            }
 
             async function loadCatalog() {
                 try {
@@ -280,28 +327,13 @@
                 if (h.length > MAX_HISTORY) h.pop(); localStorage.setItem(HISTORY_KEY, JSON.stringify(h)); renderSidebar();
             }
 
-            // Защита от 429 и задержка между запросами
-            async function wikiFetch(url) {
-                if (apiThrottle) {
-                    await new Promise(resolve => setTimeout(resolve, 2000));
-                    apiThrottle = false;
-                }
-                const resp = await fetch(url);
-                if (resp.status === 429) {
-                    apiThrottle = true;
-                    throw new Error('Слишком много запросов к Википедии. Подождите немного и попробуйте снова.');
-                }
-                if (!resp.ok) throw new Error(`Ошибка ${resp.status}`);
-                return await resp.json();
-            }
-
             const WIKI_API = 'https://ru.wikipedia.org/api/rest_v1';
             async function wikiSummaryText(title) {
                 try {
                     const data = await wikiFetch(`${WIKI_API}/page/summary/${encodeURIComponent(title)}`);
                     return stripWikiMarkup(data.extract_html || data.extract) || 'Нет описания.';
                 } catch (e) {
-                    return e.message.includes('429') ? 'Слишком много запросов к Википедии. Попробуйте позже.' : 'Не удалось загрузить описание.';
+                    return e.message.includes('429') ? 'Слишком много запросов. Подождите минуту и повторите.' : 'Не удалось загрузить описание.';
                 }
             }
             async function wikiSections(title) {
