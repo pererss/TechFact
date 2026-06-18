@@ -78,7 +78,7 @@
         {"id":"ford_f_150","title":"Ford F-150","related_parts":["engine","towing"]},
         {"id":"ford_focus","title":"Ford Focus","related_parts":["turbo","engine"]},
         {"id":"ford_mustang","title":"Ford Mustang","related_parts":["engine","transmission"]},
-                {"id":"ford_gt","title":"Ford GT","related_parts":["turbo","engine"]},
+        {"id":"ford_gt","title":"Ford GT","related_parts":["turbo","engine"]},
         {"id":"ford_mustang_mach_e","title":"Ford Mustang Mach-E","related_parts":["electric_motor","battery"]},
         {"id":"ford_puma","title":"Ford Puma","related_parts":["engine","hybrid"]},
         {"id":"ford_ranger","title":"Ford Ranger","related_parts":["engine","awd"]},
@@ -287,7 +287,7 @@
         {"id":"volvo_xc40","title":"Volvo XC40","related_parts":["turbo","engine","electric_motor"]},
         {"id":"volvo_xc60","title":"Volvo XC60","related_parts":["turbo","engine","air_suspension"]},
         {"id":"volvo_xc90","title":"Volvo XC90","related_parts":["turbo","engine","air_suspension"]},
-                {"id":"w_moskvich_408","title":"Москвич-408","related_parts":["engine","transmission"]},
+        {"id":"w_moskvich_408","title":"Москвич-408","related_parts":["engine","transmission"]},
         {"id":"w_moskvich_412","title":"Москвич-412","related_parts":["engine","transmission"]},
         {"id":"w_zaz_965","title":"ЗАЗ-965 «Запорожец»","related_parts":["engine"]},
         {"id":"w_zaz_968","title":"ЗАЗ-968","related_parts":["engine"]},
@@ -365,7 +365,7 @@
         {"id":"w_saab_900","title":"Saab 900","related_parts":["turbo","engine"]}
       ]
     },
-            {
+    {
       "id": "motorcycles",
       "title": "Мотоциклы",
       "icon": "fa-motorcycle",
@@ -430,7 +430,7 @@
         {"id":"sikorsky_uh_60","title":"Sikorsky UH-60 Black Hawk","related_parts":["turboshaft"]}
       ]
     },
-        {
+    {
       "id": "heavy",
       "title": "Тяжёлая техника",
       "icon": "fa-truck",
@@ -475,7 +475,7 @@
         {"id":"cruiser_aurora","title":"Крейсер «Аврора»","related_parts":["steam_engine"]}
       ]
     },
-        {
+    {
       "id": "space",
       "title": "Космическая техника",
       "icon": "fa-rocket",
@@ -548,7 +548,7 @@
         {"id":"radio_transmitter","title":"Радиопередатчик","desc":"Передаёт информацию по радиоканалу."},
         {"id":"rover_suspension","title":"Подвеска марсохода","desc":"Специальная конструкция для движения по пересечённой местности."},
         {"id":"towing","title":"Фаркоп и буксировка","desc":"Узел для буксировки прицепов и трейлеров."},
-                {"id":"fuel_injector","title":"Топливная форсунка","desc":"Распыляет топливо в цилиндры под высоким давлением."},
+        {"id":"fuel_injector","title":"Топливная форсунка","desc":"Распыляет топливо в цилиндры под высоким давлением."},
         {"id":"spark_plug","title":"Свеча зажигания","desc":"Воспламеняет топливно-воздушную смесь в цилиндре."},
         {"id":"glow_plug","title":"Свеча накаливания","desc":"Облегчает холодный пуск дизельного двигателя."},
         {"id":"crankshaft","title":"Коленчатый вал","desc":"Преобразует возвратно-поступательное движение поршней во вращение."},
