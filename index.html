@@ -137,6 +137,26 @@
         }
         .part-tag:hover { border-color: var(--border-hover); background: var(--bg-hover); }
 
+        .part-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+        .part-card h4 {
+            font-size: 16px;
+            margin-bottom: 5px;
+            cursor: pointer;
+            color: var(--accent);
+            text-decoration: underline;
+        }
+        .part-card p {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
         .whatinside-btn {
             margin-top: 20px;
             background: none;
@@ -277,7 +297,7 @@
                     const resp = await fetch(`${WIKI_API}/page/summary/${encodeURIComponent(title)}`);
                     if (!resp.ok) return 'Описание временно недоступно.';
                     const data = await resp.json();
-                    return stripHtml(data.extract_html || data.extract) || 'Нет описания.';
+                    return stripWikiMarkup(data.extract_html || data.extract) || 'Нет описания.';
                 } catch { return 'Не удалось загрузить описание.'; }
             }
             async function wikiSections(title) {
@@ -290,19 +310,26 @@
                 const url = `https://ru.wikipedia.org/w/api.php?action=parse&page=${encodeURIComponent(title)}&section=${idx}&prop=text&format=json&origin=*`;
                 const resp = await fetch(url);
                 const data = await resp.json();
-                return stripHtml(data.parse?.text?.['*']) || '<p>Нет содержимого</p>';
+                return stripWikiMarkup(data.parse?.text?.['*']) || 'Нет содержимого';
             }
 
-            // Удаление HTML-тегов, оставляем только текст (убираем ссылки, скрипты и т.д.)
-            function stripHtml(html) {
+            // Улучшенная очистка текста: удаляет HTML-теги, ссылки заменяет текстом,
+            // убирает "[править | править код]" и другие wiki-артефакты
+            function stripWikiMarkup(html) {
                 if (!html) return '';
                 const tmp = document.createElement('div');
                 tmp.innerHTML = html;
-                // Удаляем все ссылки, заменяя их текстом
+                // Удаляем элементы, которые не нужны
+                tmp.querySelectorAll('style, script, .mw-editsection, .reference, sup, .noprint').forEach(el => el.remove());
+                // Заменяем ссылки на их текст
                 tmp.querySelectorAll('a').forEach(a => a.replaceWith(a.textContent));
-                // Удаляем sup (сноски)
-                tmp.querySelectorAll('sup').forEach(s => s.remove());
-                return tmp.textContent || tmp.innerText || '';
+                // Получаем чистый текст
+                let text = tmp.textContent || '';
+                // Удаляем блоки "[править | править код]"
+                text = text.replace(/\[править\s*\|\s*править\s*код\]/gi, '');
+                // Удаляем множественные пробелы и переносы строк
+                text = text.replace(/\s+/g, ' ').trim();
+                return text;
             }
 
             function searchCatalog(query) {
@@ -369,7 +396,6 @@
                 const item = cat?.items?.find(i => i.id === itemId);
                 if (!item) { location.hash = 'home'; return; }
 
-                // Двухпанельная структура
                 app.innerHTML = `
                     <div class="detail-container">
                         <div class="left-panel" id="leftPanel">
@@ -401,26 +427,28 @@
                     bookmarkBtn.innerHTML = `<i class="fa-solid fa-bookmark"></i> ${added ? 'В журнале' : 'Добавить'}`;
                 });
 
-                // Показать связанные детали
                 const partsCat = catalog.categories.find(c => c.id === 'parts');
-                const relatedParts = item.related_parts || [];
-                const partsData = partsCat ? partsCat.items.filter(p => relatedParts.includes(p.id)) : [];
-                if (partsData.length) {
-                    whatInsideBtn.addEventListener('click', () => {
+                const relatedPartIds = item.related_parts || [];
+                if (relatedPartIds.length && partsCat) {
+                    whatInsideBtn.addEventListener('click', async () => {
                         if (partsContainer.style.display === 'none') {
-                            partsContainer.innerHTML = `
-                                <div class="parts-section">
-                                    <div class="section-title" style="margin-top:0;">Связанные детали</div>
-                                    <div class="parts-list">
-                                        ${partsData.map(p => `<div class="part-tag" data-id="${p.id}">${p.title}</div>`).join('')}
-                                    </div>
-                                    <p style="color:var(--text-muted);font-size:12px;margin-top:10px;">Информация из других источников появится позже (API).</p>
-                                </div>
-                            `;
                             partsContainer.style.display = 'block';
-                            partsContainer.querySelectorAll('.part-tag').forEach(tag => {
-                                tag.addEventListener('click', () => location.hash = `part/${tag.dataset.id}`);
-                            });
+                            partsContainer.innerHTML = '<p style="color:var(--text-muted);">Загрузка описаний деталей...</p>';
+                            const partDetails = [];
+                            for (const pid of relatedPartIds) {
+                                const part = partsCat.items.find(p => p.id === pid);
+                                if (part) {
+                                    const summary = await wikiSummaryText(part.title);
+                                    const shortSummary = summary.split('. ').slice(0, 2).join('. ') + (summary.split('. ').length > 2 ? '.' : '');
+                                    partDetails.push({ ...part, shortSummary });
+                                }
+                            }
+                            partsContainer.innerHTML = partDetails.length ? partDetails.map(p => `
+                                <div class="part-card">
+                                    <h4 onclick="location.hash='part/${p.id}'">${p.title}</h4>
+                                    <p>${p.shortSummary || 'Описание загружается...'}</p>
+                                </div>
+                            `).join('') : '<p>Нет связанных деталей.</p>';
                         } else {
                             partsContainer.style.display = 'none';
                         }
@@ -429,10 +457,8 @@
                     whatInsideBtn.style.display = 'none';
                 }
 
-                // Загружаем содержание и секции
                 try {
                     const summaryText = await wikiSummaryText(item.title);
-                    // Временно показываем краткое описание, пока секции загружаются
                     contentBody.innerHTML = `<p>${summaryText}</p>`;
                     addHistory({ title: item.title, url: `#item/${catId}/${itemId}` });
 
@@ -486,7 +512,6 @@
                     else renderHome();
                 }
                 else if (hash.startsWith('wiki/')) {
-                    // заглушка
                     app.innerHTML = '<div class="detail-container"><h1>Статья из Википедии</h1></div>';
                 }
                 else renderHome();
