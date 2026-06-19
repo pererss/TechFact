@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TechFact – Энциклопедия техники</title>
+    <title>TechFact – Техническая энциклопедия</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -268,14 +268,57 @@
         </div>
     </div>
     <script>
-        // ========== ДВИЖОК TECHFACT (Wikidata + улучшенные описания) ==========
         const App = (() => {
             let catalog = null;
             const requestQueue = [];
             let isProcessingQueue = false;
 
-            // Кэш Wikidata ID (сохраняется в памяти на сессию)
-            const wikidataCache = new Map();
+            // Кэш Wikidata ID (localStorage)
+            const wikidataIdCache = {
+                get(title) {
+                    try {
+                        const cache = JSON.parse(localStorage.getItem('wikidata_ids') || '{}');
+                        return cache[title] || null;
+                    } catch { return null; }
+                },
+                set(title, id) {
+                    try {
+                        const cache = JSON.parse(localStorage.getItem('wikidata_ids') || '{}');
+                        cache[title] = id;
+                        localStorage.setItem('wikidata_ids', JSON.stringify(cache));
+                    } catch {}
+                }
+            };
+
+            // Фиксированные списки характеристик по категориям
+            const charTemplates = {
+                cars: [
+                    "Двигатель", "Мощность", "Крутящий момент", "Коробка передач",
+                    "Привод", "Разгон 0–100 км/ч", "Максимальная скорость",
+                    "Расход топлива", "Снаряжённая масса", "Объём бака"
+                ],
+                motorcycles: [
+                    "Двигатель", "Мощность", "Крутящий момент", "Коробка передач",
+                    "Привод", "Разгон 0–100 км/ч", "Максимальная скорость",
+                    "Снаряжённая масса", "Объём бака", "Подвеска"
+                ],
+                aviation: [
+                    "Длина", "Размах крыльев", "Высота", "Максимальная взлётная масса",
+                    "Крейсерская скорость", "Дальность", "Двигатели", "Пассажировместимость", "Первый полёт"
+                ],
+                heavy: [
+                    "Грузоподъёмность", "Полная масса", "Двигатель", "Мощность",
+                    "Колёсная формула", "Трансмиссия", "Максимальная скорость", "Объём кузова"
+                ],
+                water: [
+                    "Водоизмещение", "Длина", "Ширина", "Осадка",
+                    "Двигатель", "Мощность", "Скорость", "Экипаж", "Год спуска"
+                ],
+                space: [
+                    "Высота", "Диаметр", "Стартовая масса", "Полезная нагрузка",
+                    "Двигатели", "Тяга", "Первый запуск", "Статус"
+                ]
+            };
 
             async function processQueue() {
                 if (isProcessingQueue) return;
@@ -322,31 +365,31 @@
                 handleRoute();
             }
 
-            // Получение Wikidata ID через Wikipedia API
+            // Получение Wikidata ID с кэшированием
             async function getWikidataId(title) {
-                if (wikidataCache.has(title)) return wikidataCache.get(title);
+                if (wikidataIdCache.get(title)) return wikidataIdCache.get(title);
                 try {
                     const data = await wikiFetch(`https://ru.wikipedia.org/w/api.php?action=query&prop=pageprops&titles=${encodeURIComponent(title)}&format=json&origin=*`);
                     const pages = data.query.pages;
                     const page = Object.values(pages)[0];
                     if (page.pageprops && page.pageprops.wikibase_item) {
                         const id = page.pageprops.wikibase_item;
-                        wikidataCache.set(title, id);
+                        wikidataIdCache.set(title, id);
                         return id;
                     }
                 } catch (e) { /* игнорируем */ }
-                wikidataCache.set(title, null);
+                wikidataIdCache.set(title, null);
                 return null;
             }
 
-            // Запрос к Wikidata SPARQL для получения свойств
+            // Получение всех свойств Wikidata для объекта
             async function getWikidataProperties(qid) {
                 const query = `SELECT ?prop ?propLabel ?value ?valueLabel WHERE {
                     wd:${qid} ?p ?statement.
                     ?prop wikibase:directClaim ?p.
                     ?statement ?ps ?value.
                     SERVICE wikibase:label { bd:serviceParam wikibase:language "ru". }
-                } LIMIT 30`;
+                } LIMIT 50`;
                 const url = `https://query.wikidata.org/sparql?query=${encodeURIComponent(query)}&format=json`;
                 try {
                     const data = await fetch(url).then(r => r.json());
@@ -357,8 +400,8 @@
                         const val = r.valueLabel ? r.valueLabel.value : r.value.value;
                         if (!props[name]) props[name] = val;
                     });
-                    return Object.entries(props).slice(0, 15); // не более 15 параметров
-                } catch (e) { return []; }
+                    return props;
+                } catch (e) { return {}; }
             }
 
             // Очистка текста от вики-разметки
@@ -376,12 +419,10 @@
 
             const WIKI_API = 'https://ru.wikipedia.org/api/rest_v1';
 
-            // Получаем развёрнутое описание: сначала summary, потом первый раздел
             async function getLongDescription(title) {
                 try {
                     const sumResp = await wikiFetch(`${WIKI_API}/page/summary/${encodeURIComponent(title)}`);
                     let desc = stripWikiMarkup(sumResp.extract_html || sumResp.extract) || '';
-                    // Если коротко, добавим первый раздел
                     if (desc.split('.').length < 3) {
                         const sections = await wikiSections(title);
                         if (sections.length > 0) {
@@ -435,6 +476,7 @@
                 if (h.length > MAX_HISTORY) h.pop(); localStorage.setItem(HISTORY_KEY, JSON.stringify(h)); renderSidebar();
             }
 
+            // Рендеринг главной
             function renderHome() {
                 if (!catalog?.categories?.length) { app.innerHTML = '<div class="home-container"><p>Загрузка каталога...</p></div>'; return; }
                 app.innerHTML = `<div class="home-container"><div class="section-title">Каталог техники</div><div class="bento-grid" id="bentoGrid"></div></div>`;
@@ -446,6 +488,7 @@
                 });
             }
 
+            // Учебный центр
             function renderLearningCenter() {
                 const partsCat = catalog?.categories?.find(c => c.id === 'parts');
                 if (!partsCat) { app.innerHTML = '<div class="learning-container"><p>Раздел деталей временно недоступен.</p></div>'; return; }
@@ -483,10 +526,13 @@
                 });
             }
 
+            // Основная функция детального просмотра с гарантированными характеристиками
             async function renderItem(catId, itemId) {
                 const cat = catalog.categories.find(c => c.id === catId);
                 const item = cat?.items?.find(i => i.id === itemId);
                 if (!item) { location.hash = 'home'; return; }
+
+                const template = charTemplates[catId] || charTemplates.cars;
 
                 app.innerHTML = `
                     <div class="detail-container">
@@ -520,7 +566,7 @@
                     bookmarkBtn.innerHTML = `<i class="fa-solid fa-bookmark"></i> ${added ? 'В журнале' : 'Добавить'}`;
                 });
 
-                // Отображаем связанные детали
+                // Связанные детали
                 const partsCat = catalog.categories.find(c => c.id === 'parts');
                 const relatedPartIds = item.related_parts || [];
                 if (relatedPartIds.length && partsCat) {
@@ -533,49 +579,60 @@
                     partsContainer.innerHTML = partsHtml;
                 }
 
-                // Загружаем длинное описание
+                // Загрузка описания
                 const desc = await getLongDescription(item.title);
 
-                // Получаем Wikidata ID и характеристики
+                // Получение характеристик (Wikidata → fallback вики-текст → прочерки)
+                let charValues = {};
+                template.forEach(key => charValues[key] = 'нет данных');
+
                 const qid = await getWikidataId(item.title);
-                let characteristicsHtml = '';
                 if (qid) {
-                    const props = await getWikidataProperties(qid);
-                    if (props.length > 0) {
-                        characteristicsHtml = '<h3>Характеристики (Wikidata)</h3><div class="characteristics">';
-                        props.forEach(([key, val]) => {
-                            characteristicsHtml += `<div class="char-item"><span>${key}</span><span>${val}</span></div>`;
+                    const wikidataProps = await getWikidataProperties(qid);
+                    template.forEach(key => {
+                        const found = Object.entries(wikidataProps).find(([propName, propValue]) => {
+                            // Простое сопоставление по части названия
+                            return propName.toLowerCase().includes(key.toLowerCase()) || key.toLowerCase().includes(propName.toLowerCase());
                         });
-                        characteristicsHtml += '</div>';
-                    }
-                }
-                if (!characteristicsHtml) {
-                    // Fallback на википедийный раздел
+                        if (found) charValues[key] = found[1];
+                    });
+                } else {
+                    // Fallback на раздел характеристик Википедии
                     const sections = await wikiSections(item.title);
                     let charIndex = null;
                     for (const s of sections) {
-                        if (/характеристики|технические характеристики|спецификации/i.test(s.line)) { charIndex = s.index; break; }
+                        if (/характеристики|технические характеристики|спецификации|лётные данные|тактико-технические/i.test(s.line)) {
+                            charIndex = s.index;
+                            break;
+                        }
                     }
                     if (charIndex !== null) {
                         try {
                             const charText = await wikiSectionContent(item.title, charIndex);
                             const lines = charText.split('\n').filter(l => l.includes(':') || l.includes('—') || l.includes('-'));
-                            if (lines.length) {
-                                characteristicsHtml = '<h3>Характеристики</h3><div class="characteristics">';
-                                lines.forEach(l => {
-                                    const parts = l.split(/[:—–-]/);
-                                    if (parts.length >= 2) {
-                                        characteristicsHtml += `<div class="char-item"><span>${parts[0].trim()}</span><span>${parts.slice(1).join(':').trim()}</span></div>`;
+                            lines.forEach(line => {
+                                template.forEach(key => {
+                                    if (line.includes(key)) {
+                                        const parts = line.split(/[:—–-]/);
+                                        if (parts.length >= 2) {
+                                            charValues[key] = parts.slice(1).join(':').trim();
+                                        }
                                     }
                                 });
-                                characteristicsHtml += '</div>';
-                            }
+                            });
                         } catch (e) {}
                     }
                 }
 
+                // Формирование HTML характеристик
+                let characteristicsHtml = '<h3>Характеристики</h3><div class="characteristics">';
+                template.forEach(key => {
+                    characteristicsHtml += `<div class="char-item"><span>${key}</span><span>${charValues[key] || 'нет данных'}</span></div>`;
+                });
+                characteristicsHtml += '</div>';
+
                 function showOverview() {
-                    contentBody.innerHTML = `${desc}<br><br>${characteristicsHtml || '<p>Характеристики не найдены.</p>'}`;
+                    contentBody.innerHTML = `${desc}<br><br>${characteristicsHtml}`;
                     addHistory({ title: item.title, url: `#item/${catId}/${itemId}` });
                 }
 
