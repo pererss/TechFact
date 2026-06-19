@@ -268,7 +268,7 @@
         </div>
     </div>
     <script>
-        // ========== ДВИЖОК TECHFACT (обновлённый) ==========
+        // ========== ДВИЖОК TECHFACT (полный, исправленный) ==========
         const App = (() => {
             let catalog = null;
             const requestQueue = [];
@@ -319,7 +319,6 @@
                 handleRoute();
             }
 
-            // Ручные характеристики для популярных моделей (заглушка, если Википедия не дала)
             const manualChars = {
                 "Toyota Corolla": [
                     ["Двигатель", "1.6 л / 1.8 л / 2.0 л бензин, гибрид"],
@@ -372,7 +371,6 @@
                 return manualChars[title] || null;
             }
 
-            // Очистка текста
             function stripWikiMarkup(html) {
                 if (!html) return '';
                 const tmp = document.createElement('div');
@@ -385,7 +383,6 @@
                 return text;
             }
 
-            // Извлечение характеристик из вики-текста
             function parseCharacteristicsFromText(text) {
                 const lines = text.split('\n');
                 const chars = [];
@@ -399,7 +396,7 @@
                         }
                     }
                 }
-                return chars.slice(0, 15); // не более 15 параметров
+                return chars.slice(0, 15);
             }
 
             const WIKI_API = 'https://ru.wikipedia.org/api/rest_v1';
@@ -432,6 +429,25 @@
 
             const app = document.getElementById('app');
 
+            // ------------------ Закладки и история ------------------
+            const BOOKMARK_KEY = 'techfact_bookmarks';
+            const HISTORY_KEY = 'techfact_history';
+            const MAX_HISTORY = 10;
+            function getBookmarks() { try { return JSON.parse(localStorage.getItem(BOOKMARK_KEY)) || []; } catch { return []; } }
+            function saveBookmarks(b) { localStorage.setItem(BOOKMARK_KEY, JSON.stringify(b)); }
+            function toggleBookmark(item) {
+                const bm = getBookmarks(); const idx = bm.findIndex(x => x.url === item.url);
+                if (idx >= 0) bm.splice(idx, 1); else bm.unshift(item);
+                saveBookmarks(bm); renderSidebar(); return idx < 0;
+            }
+            function isBookmarked(url) { return getBookmarks().some(x => x.url === url); }
+            function getHistory() { try { return JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; } catch { return []; } }
+            function addHistory(item) {
+                const h = getHistory().filter(x => x.url !== item.url); h.unshift(item);
+                if (h.length > MAX_HISTORY) h.pop(); localStorage.setItem(HISTORY_KEY, JSON.stringify(h)); renderSidebar();
+            }
+
+            // ------------------ Отрисовка страниц ------------------
             function renderHome() {
                 if (!catalog?.categories?.length) { app.innerHTML = '<div class="home-container"><p>Загрузка каталога...</p></div>'; return; }
                 app.innerHTML = `<div class="home-container"><div class="section-title">Каталог техники</div><div class="bento-grid" id="bentoGrid"></div></div>`;
@@ -446,7 +462,7 @@
             function renderLearningCenter() {
                 const partsCat = catalog?.categories?.find(c => c.id === 'parts');
                 if (!partsCat) { app.innerHTML = '<div class="learning-container"><p>Раздел деталей временно недоступен.</p></div>'; return; }
-                app.innerHTML = `<div class="learning-container"><h1 class="detail-title">Учебный центр: автомобильные детали и узлы</h1><div class="learning-grid" id="learningGrid"></div></div>`;
+                app.innerHTML = `<div class="learning-container"><h1 class="detail-title">Учебный центр: детали и узлы</h1><div class="learning-grid" id="learningGrid"></div></div>`;
                 const grid = document.getElementById('learningGrid');
                 partsCat.items.forEach(item => {
                     const card = document.createElement('div'); card.className = 'learning-card';
@@ -458,11 +474,10 @@
             function renderPartDetail(partId) {
                 const partsCat = catalog?.categories?.find(c => c.id === 'parts'); const part = partsCat?.items?.find(i => i.id === partId);
                 if (!part) { location.hash = 'learning'; return; }
-                const facts = getPartFacts(partId);
                 app.innerHTML = `
                     <div class="part-detail-container">
                         <div class="detail-header"><h1 class="detail-title">${part.title}</h1><button class="bookmark-btn" id="bookmarkBtn"><i class="fa-solid fa-bookmark"></i> ${isBookmarked(`#part/${partId}`) ? 'В журнале' : 'Добавить'}</button></div>
-                        <div class="detail-content"><p>${part.desc || ''}</p><h3 style="margin-top:20px;">Технические факты:</h3>${facts.map(f => `<div class="fact-box">${f}</div>`).join('')}</div>
+                        <div class="detail-content"><p>${part.desc || ''}</p></div>
                     </div>`;
                 document.getElementById('bookmarkBtn').addEventListener('click', function() { const added = toggleBookmark({ title: part.title, url: `#part/${partId}` }); this.innerHTML = `<i class="fa-solid fa-bookmark"></i> ${added ? 'В журнале' : 'Добавить'}`; });
                 addHistory({ title: part.title, url: `#part/${partId}` });
@@ -519,45 +534,32 @@
                     bookmarkBtn.innerHTML = `<i class="fa-solid fa-bookmark"></i> ${added ? 'В журнале' : 'Добавить'}`;
                 });
 
-                // Загрузка деталей
                 const partsCat = catalog.categories.find(c => c.id === 'parts');
                 const relatedPartIds = item.related_parts || [];
                 if (relatedPartIds.length && partsCat) {
                     let partsHtml = '<div class="parts-section"><div class="section-title" style="margin-top:0;">Ключевые узлы</div><div>';
                     relatedPartIds.forEach(pid => {
                         const part = partsCat.items.find(p => p.id === pid);
-                        if (part) {
-                            partsHtml += `<span class="part-tag" onclick="location.hash='part/${part.id}'">${part.title}</span>`;
-                        }
+                        if (part) partsHtml += `<span class="part-tag" onclick="location.hash='part/${part.id}'">${part.title}</span>`;
                     });
                     partsHtml += '</div></div>';
                     partsContainer.innerHTML = partsHtml;
                 }
 
-                // Загрузка описания и характеристик
                 let summaryText = '';
                 let characteristicsHtml = '';
-                try {
-                    summaryText = await wikiSummaryText(item.title);
-                } catch (e) {
-                    summaryText = 'Не удалось загрузить описание.';
-                }
+                try { summaryText = await wikiSummaryText(item.title); } catch (e) { summaryText = 'Не удалось загрузить описание.'; }
 
-                // Проверяем ручные характеристики
                 const manual = getManualChars(item.title);
                 if (manual) {
                     characteristicsHtml = '<h3>Характеристики</h3><div class="characteristics">';
                     manual.forEach(c => characteristicsHtml += `<div class="char-item"><span>${c[0]}</span><span>${c[1]}</span></div>`);
                     characteristicsHtml += '</div>';
                 } else {
-                    // Попытка найти раздел "Характеристики" в Википедии
                     const sections = await wikiSections(item.title);
                     let charIndex = null;
                     for (const s of sections) {
-                        if (/характеристики|технические характеристики|спецификации|лётные данные|тактико-технические/i.test(s.line)) {
-                            charIndex = s.index;
-                            break;
-                        }
+                        if (/характеристики|технические характеристики|спецификации|лётные данные|тактико-технические/i.test(s.line)) { charIndex = s.index; break; }
                     }
                     if (charIndex !== null) {
                         try {
@@ -570,11 +572,9 @@
                             } else {
                                 characteristicsHtml = '<h3>Характеристики</h3><p>Не удалось извлечь параметры.</p>';
                             }
-                        } catch (e) {
-                            characteristicsHtml = '<h3>Характеристики</h3><p>Не удалось загрузить характеристики.</p>';
-                        }
+                        } catch (e) { characteristicsHtml = '<h3>Характеристики</h3><p>Не удалось загрузить.</p>'; }
                     } else {
-                        characteristicsHtml = '<h3>Характеристики</h3><p>Раздел с характеристиками не найден.</p>';
+                        characteristicsHtml = '<h3>Характеристики</h3><p>Раздел не найден.</p>';
                     }
                 }
 
@@ -617,13 +617,10 @@
                     if (parts.length >= 3) renderItem(parts[1], parts[2]);
                     else renderHome();
                 }
-                else if (hash.startsWith('wiki/')) {
-                    app.innerHTML = '<div class="detail-container"><h1>Статья из Википедии</h1></div>';
-                }
                 else renderHome();
             }
 
-            // Сравнение (как раньше)
+            // ------------------ Боковая панель и сравнение ------------------
             let compareList = [];
             function renderSidebar() {
                 const sc = document.getElementById('sidebarContent'); if (!sc) return;
@@ -647,11 +644,8 @@
                 document.querySelectorAll('.compare-check').forEach(cb => {
                     cb.addEventListener('change', function() {
                         const id = parseInt(this.dataset.id);
-                        if (this.checked) {
-                            if (!compareList.includes(id)) compareList.push(id);
-                        } else {
-                            compareList = compareList.filter(i => i !== id);
-                        }
+                        if (this.checked) { if (!compareList.includes(id)) compareList.push(id); }
+                        else { compareList = compareList.filter(i => i !== id); }
                     });
                 });
             }
@@ -662,8 +656,8 @@
                     alert('Выберите от 2 до 6 моделей для сравнения.');
                     return;
                 }
-                const selectedModels = compareList.map(i => bookmarks[i]);
-                renderCompareModal(selectedModels);
+                const selected = compareList.map(i => bookmarks[i]);
+                renderCompareModal(selected);
             });
 
             async function renderCompareModal(models) {
@@ -680,9 +674,7 @@
                 table.innerHTML = html;
             }
 
-            function closeCompare() {
-                document.getElementById('compareModal').classList.remove('active');
-            }
+            function closeCompare() { document.getElementById('compareModal').classList.remove('active'); }
 
             function toggleSidebar() {
                 document.getElementById('sidebar').classList.toggle('open');
@@ -694,13 +686,14 @@
                 renderSidebar();
             }
 
+            // ------------------ Поиск ------------------
             const searchInput = document.getElementById('searchInput');
             const searchDropdown = document.getElementById('searchDropdown');
             searchInput.addEventListener('input', () => {
                 const q = searchInput.value.trim();
                 if (q.length < 2) { searchDropdown.innerHTML = ''; searchDropdown.classList.remove('active'); return; }
                 const results = searchCatalog(q);
-                searchDropdown.innerHTML = results.length ? results.map(r => `<div class="search-item" data-url="${r.url}"><strong>${r.title}</strong><div style="font-size:12px;color:var(--text-muted)">${r.category}</div></div>`).join('') : '<div class="search-item">Ничего не найдено в каталоге</div>';
+                searchDropdown.innerHTML = results.length ? results.map(r => `<div class="search-item" data-url="${r.url}"><strong>${r.title}</strong><div style="font-size:12px;color:var(--text-muted)">${r.category}</div></div>`).join('') : '<div class="search-item">Ничего не найдено</div>';
                 searchDropdown.classList.add('active');
                 document.querySelectorAll('#searchDropdown .search-item').forEach(el => {
                     el.addEventListener('click', () => { if (el.dataset.url) location.hash = el.dataset.url.substring(1); searchDropdown.classList.remove('active'); searchInput.value = ''; });
