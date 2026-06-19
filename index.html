@@ -136,50 +136,30 @@
         .content-body { font-size: 14px; line-height: 1.6; color: #ddd; }
         .characteristics {
             margin-top: 20px;
-            background: var(--bg-surface);
-            border: 1px solid var(--border-color);
-            padding: 15px;
-            border-radius: 4px;
         }
         .characteristics h3 { font-size: 16px; margin-bottom: 10px; }
-        .characteristics ul { list-style: none; }
-        .characteristics li { padding: 4px 0; border-bottom: 1px solid var(--border-color); font-size: 13px; }
+        .char-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 13px;
+        }
+        .char-item span:first-child { color: var(--text-muted); }
+        .char-item span:last-child { font-weight: 500; }
         .bookmark-btn {
             background: none; border: 1px solid var(--border-color); color: var(--text-muted); padding: 5px 10px;
             cursor: pointer; transition: 0.2s; margin-left: 10px; font-size: 13px; white-space: nowrap;
         }
         .bookmark-btn:hover { border-color: var(--border-hover); color: var(--text-main); }
 
-        .whatinside-btn {
-            margin-top: 15px;
-            background: none;
-            border: 1px solid var(--border-color);
-            color: var(--text-muted);
-            padding: 6px 14px;
-            cursor: pointer;
-            font-size: 13px;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            transition: 0.2s;
+        .parts-section { margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 15px; }
+        .part-tag {
+            display: inline-block;
+            background: var(--bg-surface); border: 1px solid var(--border-color); padding: 4px 10px; font-size: 12px;
+            cursor: pointer; transition: 0.2s; margin-right: 8px; margin-bottom: 8px;
         }
-        .whatinside-btn:hover { border-color: var(--border-hover); color: var(--text-main); background: var(--bg-surface); }
-
-        .part-card {
-            background: var(--bg-surface);
-            border: 1px solid var(--border-color);
-            padding: 12px;
-            margin-bottom: 8px;
-            border-radius: 4px;
-        }
-        .part-card h4 {
-            font-size: 14px;
-            margin-bottom: 4px;
-            cursor: pointer;
-            color: var(--accent);
-            text-decoration: underline;
-        }
-        .part-card p { font-size: 12px; color: var(--text-muted); line-height: 1.3; }
+        .part-tag:hover { border-color: var(--border-hover); background: var(--bg-hover); }
 
         .learning-container { padding: 20px; max-width: 1400px; margin: 0 auto; }
         .learning-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 15px; margin-top: 15px; }
@@ -196,7 +176,6 @@
             font-size: 13px; line-height: 1.5;
         }
 
-        /* Бортовой журнал (боковая панель) */
         .sidebar {
             position: fixed; top: 0; right: -380px; width: 360px; height: 100vh; background: var(--bg-base);
             border-left: 1px solid var(--border-color); transition: right 0.3s; z-index: 200; display: flex; flex-direction: column;
@@ -289,7 +268,7 @@
         </div>
     </div>
     <script>
-        // ========== ДВИЖОК TECHFACT ==========
+        // ========== ДВИЖОК TECHFACT (обновлённый) ==========
         const App = (() => {
             let catalog = null;
             const requestQueue = [];
@@ -340,35 +319,87 @@
                 handleRoute();
             }
 
-            const extendedPartsInfo = {
-                engine: { facts: ["Первый коммерчески успешный ДВС был создан Жаном Этьеном Ленуаром в 1859 году.", "КПД бензинового двигателя — около 25–30%, дизеля — до 45%.", "Двигатель Ferrari V12 имеет угол развала 65° и развивает более 800 л.с."] },
-                turbo: { facts: ["Патент на турбокомпрессор получил Альфред Бюхи в 1905 году.", "Температура выхлопных газов на входе в турбину может достигать 1050°C.", "Ротор турбокомпрессора может вращаться со скоростью до 300 000 об/мин."] },
-                transmission: { facts: ["Первая автоматическая КПП Hydra-Matic появилась в 1939 году.", "DSG переключает передачу за 0,2 секунды.", "Вариатор запатентован Леонардо да Винчи в 1490 году."] },
-                suspension: { facts: ["Независимая подвеска впервые применена на Lancia Lambda в 1922 году.", "Пневмоподвеска выравнивает уровень кузова.", "Адаптивная подвеска меняет жёсткость за 10 мс."] },
-                fuel_injector: { facts: ["Давление впрыска в бензиновых системах до 350 бар, в дизельных — до 2700 бар.", "Пьезофорсунки обеспечивают до 5 впрысков за цикл.", "Технология GDI впервые появилась на Mitsubishi Galant в 1996 году."] }
+            // Ручные характеристики для популярных моделей (заглушка, если Википедия не дала)
+            const manualChars = {
+                "Toyota Corolla": [
+                    ["Двигатель", "1.6 л / 1.8 л / 2.0 л бензин, гибрид"],
+                    ["Мощность", "122–184 л.с."],
+                    ["Крутящий момент", "153–235 Н·м"],
+                    ["Коробка передач", "6-МКПП / CVT / 6-АКПП"],
+                    ["Привод", "Передний"],
+                    ["Разгон 0–100 км/ч", "7.9–11.0 с"],
+                    ["Макс. скорость", "180–225 км/ч"],
+                    ["Расход топлива", "4.5–7.5 л/100 км"],
+                    ["Снаряжённая масса", "1370–1520 кг"],
+                    ["Объём бака", "43–55 л"]
+                ],
+                "Ford Mustang": [
+                    ["Двигатель", "2.3L EcoBoost / 5.0L V8"],
+                    ["Мощность", "310–480 л.с."],
+                    ["Крутящий момент", "475–570 Н·м"],
+                    ["Коробка передач", "6-МКПП / 10-АКПП"],
+                    ["Привод", "Задний"],
+                    ["Разгон 0–100 км/ч", "4.3–5.8 с"],
+                    ["Макс. скорость", "250 км/ч"],
+                    ["Расход топлива", "9.0–15.0 л/100 км"],
+                    ["Снаряжённая масса", "1670–1790 кг"]
+                ],
+                "Boeing 747": [
+                    ["Длина", "70.7 м"],
+                    ["Размах крыльев", "64.4 м"],
+                    ["Высота", "19.3 м"],
+                    ["Макс. взлётная масса", "439 985 кг"],
+                    ["Крейсерская скорость", "0.84 Маха"],
+                    ["Дальность", "13 450 км"],
+                    ["Двигатели", "4 × турбовентиляторных"],
+                    ["Пассажировместимость", "366–524 чел."],
+                    ["Первый полёт", "1969 год"]
+                ],
+                "Harley-Davidson Fat Boy": [
+                    ["Двигатель", "Milwaukee-Eight 107 (1745 см³)"],
+                    ["Мощность", "ок. 80 л.с."],
+                    ["Крутящий момент", "145 Н·м"],
+                    ["Коробка передач", "6-ступенчатая"],
+                    ["Привод", "Ремень"],
+                    ["Снаряжённая масса", "304 кг"],
+                    ["Ёмкость бака", "13.2 л"],
+                    ["Передняя подвеска", "Телескопическая вилка"],
+                    ["Задняя подвеска", "Моноамортизатор"]
+                ]
             };
 
-            function getPartFacts(partId) {
-                if (extendedPartsInfo[partId]) return extendedPartsInfo[partId].facts;
-                const part = catalog?.categories?.find(c => c.id === 'parts')?.items?.find(i => i.id === partId);
-                return part ? [part.desc || 'Описание временно недоступно.'] : ['Информация о данной детали появится позже.'];
+            function getManualChars(title) {
+                return manualChars[title] || null;
             }
 
-            const BOOKMARK_KEY = 'techfact_bookmarks';
-            const HISTORY_KEY = 'techfact_history';
-            const MAX_HISTORY = 10;
-            function getBookmarks() { try { return JSON.parse(localStorage.getItem(BOOKMARK_KEY)) || []; } catch { return []; } }
-            function saveBookmarks(b) { localStorage.setItem(BOOKMARK_KEY, JSON.stringify(b)); }
-            function toggleBookmark(item) {
-                const bm = getBookmarks(); const idx = bm.findIndex(x => x.url === item.url);
-                if (idx >= 0) bm.splice(idx, 1); else bm.unshift(item);
-                saveBookmarks(bm); renderSidebar(); return idx < 0;
+            // Очистка текста
+            function stripWikiMarkup(html) {
+                if (!html) return '';
+                const tmp = document.createElement('div');
+                tmp.innerHTML = html;
+                tmp.querySelectorAll('style, script, .mw-editsection, .reference, sup, .noprint').forEach(el => el.remove());
+                tmp.querySelectorAll('a').forEach(a => a.replaceWith(a.textContent));
+                let text = tmp.textContent || '';
+                text = text.replace(/\[править\s*\|\s*править\s*код\]/gi, '');
+                text = text.replace(/\s+/g, ' ').trim();
+                return text;
             }
-            function isBookmarked(url) { return getBookmarks().some(x => x.url === url); }
-            function getHistory() { try { return JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; } catch { return []; } }
-            function addHistory(item) {
-                const h = getHistory().filter(x => x.url !== item.url); h.unshift(item);
-                if (h.length > MAX_HISTORY) h.pop(); localStorage.setItem(HISTORY_KEY, JSON.stringify(h)); renderSidebar();
+
+            // Извлечение характеристик из вики-текста
+            function parseCharacteristicsFromText(text) {
+                const lines = text.split('\n');
+                const chars = [];
+                for (const line of lines) {
+                    const match = line.match(/^(.+?)[:\s—–-]+(.+)$/);
+                    if (match && match[1].trim().length < 50 && match[2].trim().length < 50) {
+                        const key = match[1].trim();
+                        const value = match[2].trim();
+                        if (!/^[•\-*]/.test(key) && !/редактировать/i.test(key)) {
+                            chars.push([key, value]);
+                        }
+                    }
+                }
+                return chars.slice(0, 15); // не более 15 параметров
             }
 
             const WIKI_API = 'https://ru.wikipedia.org/api/rest_v1';
@@ -389,18 +420,6 @@
                     const data = await wikiFetch(`https://ru.wikipedia.org/w/api.php?action=parse&page=${encodeURIComponent(title)}&section=${idx}&prop=text&format=json&origin=*`);
                     return stripWikiMarkup(data.parse?.text?.['*']) || 'Нет содержимого';
                 } catch (e) { return 'Не удалось загрузить раздел.'; }
-            }
-
-            function stripWikiMarkup(html) {
-                if (!html) return '';
-                const tmp = document.createElement('div');
-                tmp.innerHTML = html;
-                tmp.querySelectorAll('style, script, .mw-editsection, .reference, sup, .noprint').forEach(el => el.remove());
-                tmp.querySelectorAll('a').forEach(a => a.replaceWith(a.textContent));
-                let text = tmp.textContent || '';
-                text = text.replace(/\[править\s*\|\s*править\s*код\]/gi, '');
-                text = text.replace(/\s+/g, ' ').trim();
-                return text;
             }
 
             function searchCatalog(query) {
@@ -485,8 +504,7 @@
                                 </button>
                             </div>
                             <div class="content-body" id="contentBody">Загрузка...</div>
-                            <button class="whatinside-btn" id="whatInsideBtn"><i class="fa-solid fa-microchip"></i> Что внутри</button>
-                            <div id="partsContainer" style="display:none; margin-top:15px;"></div>
+                            <div id="partsContainer" style="margin-top:20px;"></div>
                         </div>
                     </div>
                 `;
@@ -494,7 +512,6 @@
                 const treeContainer = document.getElementById('treeContainer');
                 const contentBody = document.getElementById('contentBody');
                 const bookmarkBtn = document.getElementById('bookmarkBtn');
-                const whatInsideBtn = document.getElementById('whatInsideBtn');
                 const partsContainer = document.getElementById('partsContainer');
 
                 bookmarkBtn.addEventListener('click', () => {
@@ -502,99 +519,78 @@
                     bookmarkBtn.innerHTML = `<i class="fa-solid fa-bookmark"></i> ${added ? 'В журнале' : 'Добавить'}`;
                 });
 
+                // Загрузка деталей
                 const partsCat = catalog.categories.find(c => c.id === 'parts');
                 const relatedPartIds = item.related_parts || [];
                 if (relatedPartIds.length && partsCat) {
-                    whatInsideBtn.addEventListener('click', async () => {
-                        if (partsContainer.style.display === 'none') {
-                            partsContainer.style.display = 'block';
-                            partsContainer.innerHTML = '<p style="color:var(--text-muted);">Загрузка описаний деталей...</p>';
-                            const partDetails = [];
-                            for (const pid of relatedPartIds) {
-                                const part = partsCat.items.find(p => p.id === pid);
-                                if (part) {
-                                    const summary = await wikiSummaryText(part.title);
-                                    const shortSummary = summary.split('. ').slice(0, 2).join('. ') + (summary.split('. ').length > 2 ? '.' : '');
-                                    partDetails.push({ ...part, shortSummary });
-                                }
-                            }
-                            partsContainer.innerHTML = partDetails.length ? partDetails.map(p => `
-                                <div class="part-card">
-                                    <h4 onclick="location.hash='part/${p.id}'">${p.title}</h4>
-                                    <p>${p.shortSummary || 'Описание загружается...'}</p>
-                                </div>
-                            `).join('') : '<p>Нет связанных деталей.</p>';
-                        } else {
-                            partsContainer.style.display = 'none';
+                    let partsHtml = '<div class="parts-section"><div class="section-title" style="margin-top:0;">Ключевые узлы</div><div>';
+                    relatedPartIds.forEach(pid => {
+                        const part = partsCat.items.find(p => p.id === pid);
+                        if (part) {
+                            partsHtml += `<span class="part-tag" onclick="location.hash='part/${part.id}'">${part.title}</span>`;
                         }
                     });
-                } else {
-                    whatInsideBtn.style.display = 'none';
+                    partsHtml += '</div></div>';
+                    partsContainer.innerHTML = partsHtml;
                 }
 
-                // Загружаем данные и обрабатываем переключение разделов
+                // Загрузка описания и характеристик
                 let summaryText = '';
                 let characteristicsHtml = '';
-
                 try {
                     summaryText = await wikiSummaryText(item.title);
                 } catch (e) {
                     summaryText = 'Не удалось загрузить описание.';
                 }
 
-                // Попытка найти раздел с характеристиками
-                const sections = await wikiSections(item.title);
-                let charSectionIndex = null;
-                for (const s of sections) {
-                    if (/характеристики|технические характеристики|спецификации/i.test(s.line)) {
-                        charSectionIndex = s.index;
-                        break;
-                    }
-                }
-                if (charSectionIndex !== null) {
-                    try {
-                        const charText = await wikiSectionContent(item.title, charSectionIndex);
-                        // Извлекаем строки, похожие на "Параметр: значение"
-                        const lines = charText.split('\n').filter(l => l.includes(':') || l.includes('—') || l.includes('-'));
-                        if (lines.length) {
-                            characteristicsHtml = '<h3>Характеристики</h3><ul>' + lines.map(l => `<li>${l.trim()}</li>`).join('') + '</ul>';
-                        } else {
-                            characteristicsHtml = '<h3>Характеристики</h3><p>Не удалось извлечь характеристики.</p>';
-                        }
-                    } catch (e) {
-                        characteristicsHtml = '<h3>Характеристики</h3><p>Не удалось загрузить характеристики.</p>';
-                    }
+                // Проверяем ручные характеристики
+                const manual = getManualChars(item.title);
+                if (manual) {
+                    characteristicsHtml = '<h3>Характеристики</h3><div class="characteristics">';
+                    manual.forEach(c => characteristicsHtml += `<div class="char-item"><span>${c[0]}</span><span>${c[1]}</span></div>`);
+                    characteristicsHtml += '</div>';
                 } else {
-                    characteristicsHtml = '<h3>Характеристики</h3><p>Раздел с характеристиками не найден в Википедии.</p>';
-                }
-
-                // Убедимся, что описание состоит минимум из 10 строк (или дополним)
-                const descLines = summaryText.split('. ').filter(l => l.trim());
-                let displaySummary = summaryText;
-                if (descLines.length < 10) {
-                    // Повторяем последнее предложение, чтобы достичь 10 строк (это уловка, лучше потом доработать)
-                    const additional = Array(10 - descLines.length).fill(descLines[descLines.length-1] || '').join('. ');
-                    displaySummary = summaryText + (additional ? '. ' + additional : '');
+                    // Попытка найти раздел "Характеристики" в Википедии
+                    const sections = await wikiSections(item.title);
+                    let charIndex = null;
+                    for (const s of sections) {
+                        if (/характеристики|технические характеристики|спецификации|лётные данные|тактико-технические/i.test(s.line)) {
+                            charIndex = s.index;
+                            break;
+                        }
+                    }
+                    if (charIndex !== null) {
+                        try {
+                            const charText = await wikiSectionContent(item.title, charIndex);
+                            const chars = parseCharacteristicsFromText(charText);
+                            if (chars.length) {
+                                characteristicsHtml = '<h3>Характеристики</h3><div class="characteristics">';
+                                chars.forEach(c => characteristicsHtml += `<div class="char-item"><span>${c[0]}</span><span>${c[1]}</span></div>`);
+                                characteristicsHtml += '</div>';
+                            } else {
+                                characteristicsHtml = '<h3>Характеристики</h3><p>Не удалось извлечь параметры.</p>';
+                            }
+                        } catch (e) {
+                            characteristicsHtml = '<h3>Характеристики</h3><p>Не удалось загрузить характеристики.</p>';
+                        }
+                    } else {
+                        characteristicsHtml = '<h3>Характеристики</h3><p>Раздел с характеристиками не найден.</p>';
+                    }
                 }
 
                 function showOverview() {
-                    contentBody.innerHTML = `<p>${displaySummary}</p>`;
+                    contentBody.innerHTML = summaryText;
                     addHistory({ title: item.title, url: `#item/${catId}/${itemId}` });
                 }
-
                 function showCharacteristics() {
                     contentBody.innerHTML = characteristicsHtml;
                     addHistory({ title: 'Характеристики', url: `#item/${catId}/${itemId}` });
                 }
-
                 function showMarket() {
-                    contentBody.innerHTML = `<p>Поиск объявлений о продаже ${item.title}:</p>
-                        <p><a href="https://auto.ru/search/?query=${encodeURIComponent(item.title)}" target="_blank" style="color:var(--accent);">Открыть на Auto.ru</a></p>
-                        <p style="color:var(--text-muted);">Скоро здесь будет встроенный поиск.</p>`;
+                    contentBody.innerHTML = `<p>Поиск объявлений о продаже ${item.title}:</p><p><a href="https://auto.ru/search/?query=${encodeURIComponent(item.title)}" target="_blank" style="color:var(--accent);">Открыть на Auto.ru</a></p><p style="color:var(--text-muted);">Скоро здесь будет встроенный поиск.</p>`;
                     addHistory({ title: 'Продажи', url: `#item/${catId}/${itemId}` });
                 }
 
-                // Назначаем обработчики кликов на дерево
                 document.querySelectorAll('.tree-node').forEach(node => {
                     node.addEventListener('click', function() {
                         document.querySelectorAll('.tree-node').forEach(n => n.classList.remove('active'));
@@ -606,7 +602,6 @@
                     });
                 });
 
-                // По умолчанию показываем обзор
                 showOverview();
                 addHistory({ title: item.title, url: `#item/${catId}/${itemId}` });
             }
@@ -628,9 +623,8 @@
                 else renderHome();
             }
 
-            // ------------------- Сравнение -------------------
+            // Сравнение (как раньше)
             let compareList = [];
-
             function renderSidebar() {
                 const sc = document.getElementById('sidebarContent'); if (!sc) return;
                 const bm = getBookmarks(); const hist = getHistory();
@@ -650,8 +644,6 @@
                     ${hist.length === 0 ? '<p style="color:var(--text-muted);">Нет записей</p>' : ''}
                     ${hist.map(h => `<div class="log-item" onclick="location.hash='${h.url.substring(1)}'"><div class="log-item-title">${h.title}</div><div class="log-item-desc">${catalog?.categories?.find(c => c.id === h.url.split('/')[1])?.title || 'Техника'}</div></div>`).join('')}
                 `;
-
-                // Обработчики чекбоксов сравнения
                 document.querySelectorAll('.compare-check').forEach(cb => {
                     cb.addEventListener('change', function() {
                         const id = parseInt(this.dataset.id);
@@ -679,10 +671,7 @@
                 modal.classList.add('active');
                 const table = document.getElementById('compareTable');
                 table.innerHTML = '<p>Загрузка сравнения...</p>';
-
-                // Загружаем описания моделей
                 const summaries = await Promise.all(models.map(m => wikiSummaryText(m.title)));
-
                 let html = '<table class="compare-table"><tr><th>Модель</th>';
                 models.forEach(m => html += `<th>${m.title}</th>`);
                 html += '</tr><tr><td>Описание</td>';
@@ -695,7 +684,6 @@
                 document.getElementById('compareModal').classList.remove('active');
             }
 
-            // ------------------- Боковая панель (toggle) -------------------
             function toggleSidebar() {
                 document.getElementById('sidebar').classList.toggle('open');
                 document.getElementById('overlay').classList.toggle('active');
@@ -706,7 +694,6 @@
                 renderSidebar();
             }
 
-            // Поиск
             const searchInput = document.getElementById('searchInput');
             const searchDropdown = document.getElementById('searchDropdown');
             searchInput.addEventListener('input', () => {
