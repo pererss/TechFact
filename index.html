@@ -269,26 +269,13 @@
     </div>
     <script>
         const App = (() => {
+            // Твои ключи Supabase
+            const SUPABASE_URL = 'https://zjqcpavkwfjspnewexwo.supabase.co';
+            const SUPABASE_KEY = 'sb_publishable_eG4OkwHesWEOzNgBP8Rs9A_G5EGzzA7';
+
             let catalog = null;
             const requestQueue = [];
             let isProcessingQueue = false;
-
-            // Кэш Wikidata ID (localStorage)
-            const wikidataIdCache = {
-                get(title) {
-                    try {
-                        const cache = JSON.parse(localStorage.getItem('wikidata_ids') || '{}');
-                        return cache[title] || null;
-                    } catch { return null; }
-                },
-                set(title, id) {
-                    try {
-                        const cache = JSON.parse(localStorage.getItem('wikidata_ids') || '{}');
-                        cache[title] = id;
-                        localStorage.setItem('wikidata_ids', JSON.stringify(cache));
-                    } catch {}
-                }
-            };
 
             // Фиксированные списки характеристик по категориям
             const charTemplates = {
@@ -365,43 +352,28 @@
                 handleRoute();
             }
 
-            // Получение Wikidata ID с кэшированием
-            async function getWikidataId(title) {
-                if (wikidataIdCache.get(title)) return wikidataIdCache.get(title);
+            // Загрузка характеристик из Supabase
+            async function getCharacteristicsFromSupabase(modelTitle) {
                 try {
-                    const data = await wikiFetch(`https://ru.wikipedia.org/w/api.php?action=query&prop=pageprops&titles=${encodeURIComponent(title)}&format=json&origin=*`);
-                    const pages = data.query.pages;
-                    const page = Object.values(pages)[0];
-                    if (page.pageprops && page.pageprops.wikibase_item) {
-                        const id = page.pageprops.wikibase_item;
-                        wikidataIdCache.set(title, id);
-                        return id;
+                    const resp = await fetch(
+                        `${SUPABASE_URL}/rest/v1/characteristics?model_title=eq.${encodeURIComponent(modelTitle)}`,
+                        {
+                            headers: {
+                                'apikey': SUPABASE_KEY,
+                                'Authorization': `Bearer ${SUPABASE_KEY}`
+                            }
+                        }
+                    );
+                    if (!resp.ok) return null;
+                    const data = await resp.json();
+                    if (data && data.length > 0) {
+                        return data[0]; // первая запись
                     }
-                } catch (e) { /* игнорируем */ }
-                wikidataIdCache.set(title, null);
-                return null;
-            }
-
-            // Получение всех свойств Wikidata для объекта
-            async function getWikidataProperties(qid) {
-                const query = `SELECT ?prop ?propLabel ?value ?valueLabel WHERE {
-                    wd:${qid} ?p ?statement.
-                    ?prop wikibase:directClaim ?p.
-                    ?statement ?ps ?value.
-                    SERVICE wikibase:label { bd:serviceParam wikibase:language "ru". }
-                } LIMIT 50`;
-                const url = `https://query.wikidata.org/sparql?query=${encodeURIComponent(query)}&format=json`;
-                try {
-                    const data = await fetch(url).then(r => r.json());
-                    const results = data.results.bindings;
-                    const props = {};
-                    results.forEach(r => {
-                        const name = r.propLabel ? r.propLabel.value : r.prop.value;
-                        const val = r.valueLabel ? r.valueLabel.value : r.value.value;
-                        if (!props[name]) props[name] = val;
-                    });
-                    return props;
-                } catch (e) { return {}; }
+                    return null;
+                } catch (e) {
+                    console.error('Ошибка загрузки из Supabase:', e);
+                    return null;
+                }
             }
 
             // Очистка текста от вики-разметки
@@ -526,7 +498,7 @@
                 });
             }
 
-            // Основная функция детального просмотра с гарантированными характеристиками
+            // Основная функция детального просмотра с характеристиками из Supabase
             async function renderItem(catId, itemId) {
                 const cat = catalog.categories.find(c => c.id === catId);
                 const item = cat?.items?.find(i => i.id === itemId);
@@ -582,46 +554,23 @@
                 // Загрузка описания
                 const desc = await getLongDescription(item.title);
 
-                // Получение характеристик (Wikidata → fallback вики-текст → прочерки)
+                // Загрузка характеристик из Supabase
                 let charValues = {};
                 template.forEach(key => charValues[key] = 'нет данных');
 
-                const qid = await getWikidataId(item.title);
-                if (qid) {
-                    const wikidataProps = await getWikidataProperties(qid);
-                    template.forEach(key => {
-                        const found = Object.entries(wikidataProps).find(([propName, propValue]) => {
-                            // Простое сопоставление по части названия
-                            return propName.toLowerCase().includes(key.toLowerCase()) || key.toLowerCase().includes(propName.toLowerCase());
-                        });
-                        if (found) charValues[key] = found[1];
-                    });
-                } else {
-                    // Fallback на раздел характеристик Википедии
-                    const sections = await wikiSections(item.title);
-                    let charIndex = null;
-                    for (const s of sections) {
-                        if (/характеристики|технические характеристики|спецификации|лётные данные|тактико-технические/i.test(s.line)) {
-                            charIndex = s.index;
-                            break;
-                        }
-                    }
-                    if (charIndex !== null) {
-                        try {
-                            const charText = await wikiSectionContent(item.title, charIndex);
-                            const lines = charText.split('\n').filter(l => l.includes(':') || l.includes('—') || l.includes('-'));
-                            lines.forEach(line => {
-                                template.forEach(key => {
-                                    if (line.includes(key)) {
-                                        const parts = line.split(/[:—–-]/);
-                                        if (parts.length >= 2) {
-                                            charValues[key] = parts.slice(1).join(':').trim();
-                                        }
-                                    }
-                                });
-                            });
-                        } catch (e) {}
-                    }
+                const dbRow = await getCharacteristicsFromSupabase(item.title);
+                if (dbRow) {
+                    // Маппим поля из таблицы на наш шаблон
+                    if (dbRow.engine) charValues["Двигатель"] = dbRow.engine;
+                    if (dbRow.power) charValues["Мощность"] = dbRow.power;
+                    if (dbRow.torque) charValues["Крутящий момент"] = dbRow.torque;
+                    if (dbRow.transmission) charValues["Коробка передач"] = dbRow.transmission;
+                    if (dbRow.drive) charValues["Привод"] = dbRow.drive;
+                    if (dbRow.acceleration) charValues["Разгон 0–100 км/ч"] = dbRow.acceleration;
+                    if (dbRow.max_speed) charValues["Максимальная скорость"] = dbRow.max_speed;
+                    if (dbRow.fuel_consumption) charValues["Расход топлива"] = dbRow.fuel_consumption;
+                    if (dbRow.weight) charValues["Снаряжённая масса"] = dbRow.weight;
+                    if (dbRow.fuel_tank) charValues["Объём бака"] = dbRow.fuel_tank;
                 }
 
                 // Формирование HTML характеристик
